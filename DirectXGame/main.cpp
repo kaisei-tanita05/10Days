@@ -1,5 +1,4 @@
 #include <Windows.h>
-
 #include "KamataEngine.h"
 
 using namespace KamataEngine;
