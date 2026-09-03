@@ -9,6 +9,9 @@ GameScene::~GameScene() {
 	}
 	delete obstacles_;
 	obstacles_ = nullptr;
+
+	delete player1_;
+	delete player2_;
 }
 
 void GameScene::Initialize() {
@@ -23,6 +26,31 @@ void GameScene::Initialize() {
 	// 障害物の初期化
 	obstacles_ = new Obstacles();
 	obstacles_->Initialize();
+
+	// プレイヤーの初期化
+	// 画像の読み込み
+	player1TextureHandle_ = TextureManager::Load("hito.png");
+	player2TextureHandle_ = TextureManager::Load("hito2.png");
+
+	// 床のテクスチャを読み込む
+	floor1TextureHandle_ = TextureManager::Load("floor.png");
+	floor2TextureHandle_ = TextureManager::Load("floor.png");
+
+	// 床のスプライトを生成
+	floor1Sprite_ = Sprite::Create(floor1TextureHandle_, {0.0f, 320.0f});
+	floor1Sprite_->SetAnchorPoint({0.0f, 0.0f}); // 左上を基準にする
+
+	floor2Sprite_ = Sprite::Create(floor2TextureHandle_, {0.0f, 670.0f});
+	floor2Sprite_->SetAnchorPoint({0.0f, 0.0f}); // 左上を基準にする
+
+	// プレイヤーの初期化
+	player1_ = new Player();
+	player1_->Initialize(player1TextureHandle_, {100.0f, 110.0f});
+	player1_->SetMoveLimitY(0.0f, 190.0f); // プレイヤー1の移動範囲を設定
+
+	player2_ = new Player();
+	player2_->Initialize(player2TextureHandle_, {100.0f, 500.0f});
+	player2_->SetMoveLimitY(350.0f, 550.0f); // プレイヤー2の移動範囲を設定
 }
 
 void GameScene::Update() {
@@ -43,11 +71,83 @@ void GameScene::Update() {
 	//	sprite2_->SetPosition({sprite_->GetPosition().x + 1280.0f, 0});
 	//}
 
-	// スクロール量を増やす
-	scrollX_ += bgSpeed_;
 
-	if (scrollX_ >= 1280.0f * 4.0f) {
-		scrollX_ -= 1280.0f * 4.0f;
+	// ゲームロジックや入力処理を記述
+	Input* input = Input::GetInstance();
+
+	// プレイヤーの更新
+	if (input->TriggerKey(DIK_1)) {
+		if (activePlayer_ == ActivePlayer::Player1) {
+			activePlayer_ = ActivePlayer::Player2;
+		} else {
+			activePlayer_ = ActivePlayer::Player1;
+		}
+	}
+
+	// それぞれに「自分が操作中か」を渡してUpdate
+	if (player1_) {
+		player1_->Update(activePlayer_ == ActivePlayer::Player1);
+	}
+	if (player2_) {
+		player2_->Update(activePlayer_ == ActivePlayer::Player2);
+	}
+
+
+	// スクロール量を増やす
+	//scrollX_ += bgSpeed_;
+
+	//if (scrollX_ >= 1280.0f * 4.0f) {
+	//	scrollX_ -= 1280.0f * 4.0f;
+	//}
+
+	//========================================
+	// 背景スクロール
+	//========================================
+
+	// 操作中のプレイヤーを取得
+	Player* activePlayer = nullptr;
+
+	if (activePlayer_ == ActivePlayer::Player1) {
+		activePlayer = player1_;
+	} else {
+		activePlayer = player2_;
+	}
+
+	if (activePlayer) {
+
+		// プレイヤーのワールド座標
+		//float playerX = activePlayer->GetPosition().x;
+
+		// プレイヤーのワールド座標
+		float playerWorldX = activePlayer->GetPosition().x;
+
+		// プレイヤーの画面上の座標
+		float playerScreenX = playerWorldX - scrollX_;
+
+		// Dキーを押している
+		if (input->PushKey(DIK_D)) {
+
+			// 画面上のプレイヤーが800pxに到達したらスクロール
+			if (playerScreenX >= scrollStartX_) {
+
+				// プレイヤーと同じ速度で背景をスクロール
+				scrollX_ += bgSpeed_;
+
+				// 最大スクロール量
+				if (scrollX_ > maxScrollX_) {
+					scrollX_ = maxScrollX_;
+				}
+			}
+		}
+	}
+
+	// プレイヤーにスクロール量を渡す
+	if (player1_) {
+		player1_->SetScrollX(scrollX_);
+	}
+
+	if (player2_) {
+		player2_->SetScrollX(scrollX_);
 	}
 
 	// 障害物の更新
@@ -70,6 +170,22 @@ void GameScene::Draw() {
 		sprites_[i]->Draw();
 	}
 	//sprite2_->Draw();
+
+	//プレイヤー
+	if (floor1Sprite_) {
+		floor1Sprite_->Draw();
+	}
+	if (floor2Sprite_) {
+		floor2Sprite_->Draw();
+	}
+
+	// スプライトの描画 (PreDraw と PostDraw の間に記述)
+	if (player1_) {
+		player1_->Draw();
+	}
+	if (player2_) {
+		player2_->Draw();
+	}
 
 	Sprite::PostDraw();
 	// 障害物の描画

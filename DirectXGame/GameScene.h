@@ -1,6 +1,9 @@
 #pragma once
 #include <KamataEngine.h>
 #include "Obstacles.h"
+#include "Player.h"
+
+enum class ActivePlayer { Player1, Player2 };
 
 class GameScene {
 public:
@@ -32,8 +35,29 @@ public:
 	// 背景のスクロール量
 	float scrollX_ = 0.0f;
 
+	// プレイヤーがここまで来たらスクロール開始
+	float scrollStartX_ = 600.0f;
+
+	// スクロールできる最大値
+	float maxScrollX_ = 3840.0f;
+
 	// 背景の移動速度
-	float bgSpeed_ = 2.0f;
+	float bgSpeed_ = 5.0f;
 
 	Obstacles* obstacles_ = nullptr;
+
+	// プレイヤーのインスタンス
+	Player* player1_ = nullptr;
+	Player* player2_ = nullptr;
+
+	// 床用の変数
+	uint32_t floor1TextureHandle_ = 0;             // 床のテクスチャハンドル
+	KamataEngine::Sprite* floor1Sprite_ = nullptr; // 床のスプライト
+
+	uint32_t floor2TextureHandle_ = 0;             // 床のテクスチャハンドル
+	KamataEngine::Sprite* floor2Sprite_ = nullptr; // 床のスプライト
+
+	uint32_t player1TextureHandle_ = 0;                 // プレイヤー1のテクスチャハンドル
+	uint32_t player2TextureHandle_ = 0;                 // プレイヤー2のテクスチャハンドル
+	ActivePlayer activePlayer_ = ActivePlayer::Player1; // 現在アクティブなプレイヤー
 };
