@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Fade.h"
 #include "KamataEngine.h"
 
 using namespace KamataEngine;
@@ -100,6 +101,25 @@ private:
 
 	// 次に移動するシーン
 	Scene nextScene_ = Scene::Title;
+
+	//==================================================
+	// フェード
+	//==================================================
+
+	// フェード処理
+	Fade fade_;
+
+	// シーン切り替え中かどうか
+	bool isSceneChanging_ = false;
+
+	// 現在フェードアウト中かどうか
+	// true  : フェードアウト中
+	// false : フェードイン中
+	bool isFadeOut_ = false;
+
+	// フェードにかける時間
+	// 1.0f = 1秒
+	static const float kFadeDuration;
 
 	//==================================================
 	// 制限時間
