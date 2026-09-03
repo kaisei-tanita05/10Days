@@ -57,6 +57,22 @@ void GameScene::Initialize() {
 	gamePlaySprite_->SetSize({1280.0f, 720.0f});
 	gameClearSprite_->SetSize({1280.0f, 720.0f});
 	gameOverSprite_->SetSize({1280.0f, 720.0f});
+
+	// 制限時間を10秒に設定する
+	gameTime_ = kGameTime;
+
+	// タイマーのフレーム数をリセットする
+	timerFrame_ = 0;
+
+	//==================================================
+	// 制限時間の初期化を追加
+	//==================================================
+
+	// ゲーム開始時の残り時間を10秒に戻す
+	gameTime_ = kGameTime;
+
+	// タイマーのフレーム数を0に戻す
+	timerFrame_ = 0;
 }
 
 //==================================================
@@ -156,6 +172,19 @@ void GameScene::UpdateOperation() {
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 		nextScene_ = Scene::GamePlay;
 	}
+
+	//==================================================
+	// 制限時間の初期化を追加
+	//==================================================
+
+	// ゲーム本編へ移動するときに
+	// 制限時間を10秒に戻す
+	if (nextScene_ == Scene::GamePlay) {
+		gameTime_ = kGameTime;
+
+		// タイマーのフレーム数もリセットする
+		timerFrame_ = 0;
+	}
 }
 
 void GameScene::DrawOperation() {
@@ -170,14 +199,37 @@ void GameScene::DrawOperation() {
 
 void GameScene::UpdateGamePlay() {
 
+	//==================================================
+	// 制限時間
+	//==================================================
+
+	// 1フレーム経過したのでカウントする
+	timerFrame_++;
+
+	// 60フレーム経過したら1秒減らす
+	// ※60FPSで動作する想定
+	if (timerFrame_ >= 60) {
+
+		// 残り時間を1秒減らす
+		gameTime_--;
+
+		// フレーム数をリセットする
+		timerFrame_ = 0;
+	}
+
+	//==================================================
+	// 時間切れ
+	//==================================================
+
+	// 残り時間が0秒以下になったら
+	// ゲームオーバー画面へ移動する
+	if (gameTime_ <= 0) {
+		nextScene_ = Scene::GameOver;
+	}
+
 	// Cキーを押した瞬間にゲームクリア画面へ移動する
 	if (Input::GetInstance()->TriggerKey(DIK_C)) {
 		nextScene_ = Scene::GameClear;
-	}
-
-	// Gキーを押した瞬間にゲームオーバー画面へ移動する
-	if (Input::GetInstance()->TriggerKey(DIK_G)) {
-		nextScene_ = Scene::GameOver;
 	}
 }
 
