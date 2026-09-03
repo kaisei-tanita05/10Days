@@ -178,7 +178,15 @@ xcopy "$(ProjectDir)..\External\KamataEngine\shaders" "$(ProjectDir)Resources\En
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Fade.cpp" />
+    <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Obstacles.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Fade.h" />
+    <ClInclude Include="GameScene.h" />
+    <ClInclude Include="Obstacles.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
