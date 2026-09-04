@@ -60,4 +60,10 @@ public:
 	uint32_t player1TextureHandle_ = 0;                 // プレイヤー1のテクスチャハンドル
 	uint32_t player2TextureHandle_ = 0;                 // プレイヤー2のテクスチャハンドル
 	ActivePlayer activePlayer_ = ActivePlayer::Player1; // 現在アクティブなプレイヤー
+
+	float maxChainLength_ = 400.0f; // 紐の最大長（ピクセル）
+
+	// 紐の描画用スプライト
+	uint32_t chainTextureHandle_ = 0;
+	KamataEngine::Sprite* chainSprite_ = nullptr;
 };
