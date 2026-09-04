@@ -3,17 +3,30 @@
 using namespace KamataEngine;
 
 GameScene::~GameScene() {
+
+	// 背景スプライトの解放
 	for (int i = 0; i < 4; i++) {
 		delete sprites_[i];
 		sprites_[i] = nullptr;
 	}
+
+	// 障害物の解放
 	delete obstacles_;
 	obstacles_ = nullptr;
 
+	// アイテムの解放
+	delete item_;
+	item_ = nullptr;
+
+	// プレイヤーの解放
 	delete player1_;
+	player1_ = nullptr;
 	delete player2_;
-	//鎖モデル
+	player2_ = nullptr;
+
+	// 鎖モデルの解放
 	delete chainSprite_;
+	chainSprite_ = nullptr;
 }
 
 void GameScene::Initialize() {
@@ -142,6 +155,26 @@ void GameScene::Update() {
 		obstacles_->Update();
 	}
 
+
+	//========================================
+	// アイテム
+	//========================================
+
+	if (obstacles_ && obstacles_->IsDestroyed() && item_ == nullptr) {
+
+		// 瓶が壊れた場所
+		Vector2 itemPosition = obstacles_->GetPosition();
+
+		item_ = new Item();
+		item_->Initialize(itemPosition);
+	}
+
+	if (item_) {
+
+		item_->SetScrollX(scrollX_);
+		item_->Update();
+	}
+
 	// 紐の長さ制限の処理
 	if (player1_ && player2_) {
 		Vector2 pos1 = player1_->GetPosition();
@@ -219,6 +252,19 @@ void GameScene::Update() {
 				if (input->TriggerKey(DIK_RETURN)) {
 
 					obstacles_->Hit();
+
+					// 瓶が壊れた
+					if (obstacles_->IsDestroyed()) {
+
+						// Itemがまだ存在していなければ生成
+						if (!item_) {
+
+							item_ = new Item();
+
+							// 瓶の位置にItemを出す
+							item_->Initialize(obstacles_->GetPosition());
+						}
+					}
 				}
 			}
 		}
@@ -239,6 +285,60 @@ void GameScene::Update() {
 			}
 		}
 	}
+
+	if (item_ && !item_->IsHeld() && !item_->IsDropped()) {
+
+		const float itemWidth = 64.0f;
+		const float itemHeight = 64.0f;
+
+		if (player1_ && player1_->IsCollision(item_->GetPosition(), itemWidth, itemHeight)) {
+
+			item_->PickUp();
+			itemHolder_ = player1_;
+		} else if (player2_ && player2_->IsCollision(item_->GetPosition(), itemWidth, itemHeight)) {
+
+			item_->PickUp();
+			itemHolder_ = player2_;
+		}
+	}
+
+	//========================================
+	// Itemを持っている間
+	//========================================
+
+	if (item_ && item_->IsHeld() && itemHolder_) {
+
+		Vector2 playerPos = itemHolder_->GetPosition();
+
+		// プレイヤーの頭上に持つ
+		item_->SetPosition({playerPos.x, playerPos.y - 50.0f});
+	}
+	
+	//========================================
+	// Itemを落とす
+	//========================================
+
+	if (item_ && item_->IsHeld() && itemHolder_ && input->TriggerKey(DIK_RETURN)) {
+
+		// 誰が持っているかで落下する地面を変更
+		if (itemHolder_ == player1_) {
+
+			// Player1側の地面
+			item_->SetGroundY(606.0f);
+
+		} else if (itemHolder_ == player2_) {
+
+			// Player2側の地面
+			item_->SetGroundY(606.0f);
+		}
+
+		// Itemを落とす
+		item_->Drop();
+
+		// 持ち主を解除
+		itemHolder_ = nullptr;
+	}
+
 }
 
 void GameScene::Draw() {
@@ -276,6 +376,9 @@ void GameScene::Draw() {
 		player2_->Draw();
 	}
 
+	if (item_) {
+		item_->Draw();
+	}
 
 	obstacles_->Draw();
 

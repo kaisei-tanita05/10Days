@@ -2,6 +2,7 @@
 #include <KamataEngine.h>
 #include "Obstacles.h"
 #include "Player.h"
+#include "Item.h"
 
 enum class ActivePlayer { Player1, Player2 };
 
@@ -44,7 +45,11 @@ public:
 	// 背景の移動速度
 	float bgSpeed_ = 5.0f;
 
+	// 障害物のインスタンス
 	Obstacles* obstacles_ = nullptr;
+
+	// アイテムのインスタンス
+	Item* item_ = nullptr;
 
 	// プレイヤーのインスタンス
 	Player* player1_ = nullptr;
@@ -66,4 +71,7 @@ public:
 	// 紐の描画用スプライト
 	uint32_t chainTextureHandle_ = 0;
 	KamataEngine::Sprite* chainSprite_ = nullptr;
+
+	Player* itemHolder_ = nullptr;
+
 };
