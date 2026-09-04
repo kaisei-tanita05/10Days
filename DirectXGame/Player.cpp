@@ -59,3 +59,10 @@ void Player::Draw() {
 		sprite_->Draw();
 	}
 }
+
+void Player::SetPosition(const KamataEngine::Vector2& pos) {
+	position_ = pos;
+	if (sprite_) {
+		sprite_->SetPosition(position_);
+	}
+}

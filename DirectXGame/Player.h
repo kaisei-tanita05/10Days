@@ -10,6 +10,9 @@ public:
 	// プレイヤーの位置
 	const KamataEngine::Vector2& GetPosition() const { return position_; }
 
+	// プレイヤーの位置を設定する関数
+	void SetPosition(const KamataEngine::Vector2& pos);
+
 	// 移動範囲（Y軸）を設定する関数
 	void SetMoveLimitY(float minY, float maxY) {
 		minY_ = minY;
