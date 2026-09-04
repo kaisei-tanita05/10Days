@@ -25,7 +25,8 @@ void GameScene::Initialize() {
 
 	// 障害物の初期化
 	obstacles_ = new Obstacles();
-	obstacles_->Initialize();
+	// ステージ上の座標
+	obstacles_->Initialize({2000.0f, 256.0f});
 
 	// プレイヤーの初期化
 	// 画像の読み込み
@@ -54,23 +55,6 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
-	// 背景を右に移動
-	//sprite_->SetPosition({sprite_->GetPosition().x - bgSpeed_, 0});
-
-	//sprite2_->SetPosition({sprite2_->GetPosition().x - bgSpeed_, 0});
-
-	//// sprite_ が左に消えたら
-	//// sprite2_ の右側へ
-	//if (sprite_->GetPosition().x <= -1280.0f) {
-	//	sprite_->SetPosition({sprite2_->GetPosition().x + 1280.0f, 0});
-	//}
-
-	//// sprite2_ が左に消えたら
-	//// sprite_ の右側へ
-	//if (sprite2_->GetPosition().x <= -1280.0f) {
-	//	sprite2_->SetPosition({sprite_->GetPosition().x + 1280.0f, 0});
-	//}
-
 
 	// ゲームロジックや入力処理を記述
 	Input* input = Input::GetInstance();
@@ -92,14 +76,6 @@ void GameScene::Update() {
 		player2_->Update(activePlayer_ == ActivePlayer::Player2);
 	}
 
-
-	// スクロール量を増やす
-	//scrollX_ += bgSpeed_;
-
-	//if (scrollX_ >= 1280.0f * 4.0f) {
-	//	scrollX_ -= 1280.0f * 4.0f;
-	//}
-
 	//========================================
 	// 背景スクロール
 	//========================================
@@ -114,9 +90,6 @@ void GameScene::Update() {
 	}
 
 	if (activePlayer) {
-
-		// プレイヤーのワールド座標
-		//float playerX = activePlayer->GetPosition().x;
 
 		// プレイヤーのワールド座標
 		float playerWorldX = activePlayer->GetPosition().x;
@@ -151,9 +124,51 @@ void GameScene::Update() {
 	}
 
 	// 障害物の更新
-	// 障害物の更新
 	if (obstacles_) {
+		obstacles_->SetScrollX(scrollX_);
 		obstacles_->Update();
+	}
+
+	//========================================
+	// 障害物との当たり判定
+	//========================================
+
+	if (obstacles_ && !obstacles_->IsDestroyed()) {
+
+		const float obstacleWidth = 64.0f;
+		const float obstacleHeight = 64.0f;
+
+		// Player1
+		if (player1_) {
+
+			if (player1_->IsCollision(obstacles_->GetPosition(), obstacleWidth, obstacleHeight)) {
+
+				// 通常の衝突処理
+				player1_->ResolveCollision(obstacles_->GetPosition(), obstacleWidth, obstacleHeight);
+
+				// Enterキー
+				if (input->TriggerKey(DIK_RETURN)) {
+
+					obstacles_->Hit();
+				}
+			}
+		}
+
+		// Player2
+		if (player2_) {
+
+			if (player2_->IsCollision(obstacles_->GetPosition(), obstacleWidth, obstacleHeight)) {
+
+				// 通常の衝突処理
+				player2_->ResolveCollision(obstacles_->GetPosition(), obstacleWidth, obstacleHeight);
+
+				// Enterキー
+				if (input->TriggerKey(DIK_RETURN)) {
+
+					obstacles_->Hit();
+				}
+			}
+		}
 	}
 }
 
@@ -186,8 +201,9 @@ void GameScene::Draw() {
 	if (player2_) {
 		player2_->Draw();
 	}
+	obstacles_->Draw();
+
 
 	Sprite::PostDraw();
 	// 障害物の描画
-	obstacles_->Draw();
 }

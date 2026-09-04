@@ -11,9 +11,13 @@ void Player::Initialize(uint32_t textureHandle, const KamataEngine::Vector2& ini
 }
 
 void Player::Update(bool isActive) {
-	if (isActive) {
 
+		// 移動前の座標を保存
+		previousPosition_ = position_;
+
+	if (isActive) {
 		Input* input = Input::GetInstance();
+
 
 		// キー入力に応じてプレイヤーの位置を更新
 
@@ -49,6 +53,96 @@ void Player::Update(bool isActive) {
 	}
 
 	// スプライトの位置を更新
+	if (sprite_) {
+		sprite_->SetPosition({position_.x - scrollX_, position_.y});
+	}
+}
+
+
+bool Player::IsCollision(const Vector2& obstaclePosition, float obstacleWidth, float obstacleHeight) const {
+
+	// プレイヤーの矩形
+	float playerLeft = position_.x;
+	float playerRight = position_.x + kWidth;
+	float playerTop = position_.y;
+	float playerBottom = position_.y + kHeight;
+
+	// 障害物の矩形
+	float obstacleLeft = obstaclePosition.x;
+	float obstacleRight = obstaclePosition.x + obstacleWidth;
+	float obstacleTop = obstaclePosition.y;
+	float obstacleBottom = obstaclePosition.y + obstacleHeight;
+
+	// AABB判定
+	if (playerRight <= obstacleLeft) {
+		return false;
+	}
+
+	if (playerLeft >= obstacleRight) {
+		return false;
+	}
+
+	if (playerBottom <= obstacleTop) {
+		return false;
+	}
+
+	if (playerTop >= obstacleBottom) {
+		return false;
+	}
+
+	return true;
+}
+
+void Player::ResolveCollision(const Vector2& obstaclePosition, float obstacleWidth, float obstacleHeight) {
+
+	float playerLeft = position_.x;
+	float playerRight = position_.x + kWidth;
+	float playerTop = position_.y;
+	float playerBottom = position_.y + kHeight;
+
+	float obstacleLeft = obstaclePosition.x;
+	float obstacleRight = obstaclePosition.x + obstacleWidth;
+	float obstacleTop = obstaclePosition.y;
+	float obstacleBottom = obstaclePosition.y + obstacleHeight;
+
+	//========================================
+	// 上から乗った
+	//========================================
+
+	if (previousPosition_.y + kHeight <= obstacleTop && playerBottom > obstacleTop) {
+
+		position_.y = obstacleTop - kHeight;
+
+		velocityY_ = 0.0f;
+		isGrounded_ = true;
+	}
+	//========================================
+	// 下からぶつかった
+	//========================================
+	else if (previousPosition_.y >= obstacleBottom && playerTop < obstacleBottom) {
+
+		position_.y = obstacleBottom;
+
+		velocityY_ = 0.0f;
+	}
+	//========================================
+	// 横からぶつかった
+	//========================================
+	else {
+
+		// 左から右へ進んでぶつかった
+		if (previousPosition_.x + kWidth <= obstacleLeft && playerRight > obstacleLeft) {
+
+			position_.x = obstacleLeft - kWidth;
+		}
+		// 右から左へ進んでぶつかった
+		else if (previousPosition_.x >= obstacleRight && playerLeft < obstacleRight) {
+
+			position_.x = obstacleRight;
+		}
+	}
+
+	// スプライト位置を更新
 	if (sprite_) {
 		sprite_->SetPosition({position_.x - scrollX_, position_.y});
 	}

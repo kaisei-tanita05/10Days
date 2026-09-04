@@ -19,6 +19,22 @@ public:
 	// スクロール量を設定
 	void SetScrollX(float scrollX) { scrollX_ = scrollX; }
 
+	const float kWidth = 128.0f; // プレイヤーの幅
+	const float kHeight = 128.0f; // プレイヤーの高さ
+
+	// 障害物との当たり判定
+	bool IsCollision(const KamataEngine::Vector2& obstaclePosition, float obstacleWidth, float obstacleHeight) const;
+
+	// 移動前の座標
+	KamataEngine::Vector2 previousPosition_{};
+
+	void SetPosition(const KamataEngine::Vector2& position) { position_ = position; }
+
+	void ResolveCollision(
+		const KamataEngine::Vector2& obstaclePosition,
+		float obstacleWidth,
+		float obstacleHeight);
+
 private:
 	uint32_t textureHandle_ = 0;                    // テクスチャハンドル
 	KamataEngine::Sprite* sprite_ = nullptr;        // スプライト
