@@ -180,6 +180,7 @@ xcopy "$(ProjectDir)..\External\KamataEngine\shaders" "$(ProjectDir)Resources\En
   <ItemGroup>
     <ClCompile Include="Fade.cpp" />
     <ClCompile Include="GameScene.cpp" />
+    <ClCompile Include="Item.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Obstacles.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -187,6 +188,7 @@ xcopy "$(ProjectDir)..\External\KamataEngine\shaders" "$(ProjectDir)Resources\En
   <ItemGroup>
     <ClInclude Include="Fade.h" />
     <ClInclude Include="GameScene.h" />
+    <ClInclude Include="Item.h" />
     <ClInclude Include="Obstacles.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
