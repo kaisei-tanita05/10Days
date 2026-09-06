@@ -76,6 +76,8 @@ private:
 	bool isDropped_ = false;
 	// 落下速度
 	float velocityY_ = 0.0f;
+	// 横方向の速度
+	float velocityX_ = 0.0f;
 	// 重力
 	const float gravity_ = 0.5f;
 	/// 落下速度の上限

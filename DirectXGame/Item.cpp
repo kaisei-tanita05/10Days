@@ -15,6 +15,9 @@ void Item::Initialize(const Vector2& position) {
 void Item::Update() {
 	// 落としている場合
 	if (isDropped_) {
+
+		// 横方向に進む
+		worldPosition_.x += velocityX_;
 		// 重力
 		velocityY_ += gravity_;
 		if (velocityY_ > maxFallSpeed_) {
@@ -49,8 +52,12 @@ void Item::PickUp() {
 void Item::Drop() {
 	isHeld_ = false;
 	isDropped_ = true; 
-	// 落とす瞬間の初速度
-	velocityY_ = 0.0f; }
+	// 少し上に投げる
+	velocityY_ = -8.0f;
+
+	// 前に飛ばす
+	velocityX_ = 5.0f;
+}
 
 void Item::Draw() {
 	if (sprite_) {
