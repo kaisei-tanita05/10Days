@@ -5,6 +5,7 @@
 #include "Item.h"
 #include "stand.h"
 
+
 enum class ActivePlayer { Player1, Player2 };
 
 class GameScene {
