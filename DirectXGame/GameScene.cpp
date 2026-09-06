@@ -28,6 +28,13 @@ GameScene::~GameScene() {
 	delete player2_;
 	player2_ = nullptr;
 
+	// 床
+	delete floor1Sprite_;
+	floor1Sprite_ = nullptr;
+
+	delete floor2Sprite_;
+	floor2Sprite_ = nullptr;
+
 	// 鎖モデルの解放
 	delete chainSprite_;
 	chainSprite_ = nullptr;
@@ -354,7 +361,7 @@ void GameScene::Update() {
 	// 投げたItemとStandの当たり判定
 	//========================================
 
-	if (item_ && stand_ && item_->IsDropped()) {
+	if (item_ && stand_ && item_->IsDropped() && !isFinished_) {
 
 		const float itemWidth = 64.0f;
 		const float itemHeight = 64.0f;
@@ -366,6 +373,9 @@ void GameScene::Update() {
 
 			// Itemを停止
 			item_->Stop();
+
+			// ゲームクリア
+			isFinished_ = true;
 		}
 	}
 }

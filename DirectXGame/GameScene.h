@@ -28,6 +28,9 @@ public:
 	/// </summary>
 	void Draw();
 
+	// ゲームクリアしたか
+	bool IsFinished() const { return isFinished_; }
+
 	private:
 
 	KamataEngine::Sprite* sprites_[4] = {};
@@ -78,4 +81,6 @@ public:
 
 	Player* itemHolder_ = nullptr;
 
+	// ゲームクリアフラグ
+	bool isFinished_ = false;
 };
