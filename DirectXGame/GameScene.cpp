@@ -18,6 +18,10 @@ GameScene::~GameScene() {
 	delete item_;
 	item_ = nullptr;
 
+	// Standの解放
+	delete stand_;
+	stand_ = nullptr;
+
 	// プレイヤーの解放
 	delete player1_;
 	player1_ = nullptr;
@@ -76,6 +80,12 @@ void GameScene::Initialize() {
 	chainSprite_->SetAnchorPoint({0.0f, 0.5f}); // 左端を基準にする
 	// 紐の最大長を設定
 	maxChainLength_ = 400.0f;
+
+	// Standの初期化
+	stand_ = new Stand();
+
+	// Standの位置
+	stand_->Initialize({2600.0f, 606.0f});
 }
 
 void GameScene::Update() {
@@ -99,8 +109,6 @@ void GameScene::Update() {
 	if (player2_) {
 		player2_->Update(activePlayer_ == ActivePlayer::Player2);
 	}
-
-	
 
 	//========================================
 	// 背景スクロール
@@ -155,7 +163,6 @@ void GameScene::Update() {
 		obstacles_->Update();
 	}
 
-
 	//========================================
 	// アイテム
 	//========================================
@@ -173,6 +180,11 @@ void GameScene::Update() {
 
 		item_->SetScrollX(scrollX_);
 		item_->Update();
+	}
+
+	if (stand_) {
+
+		stand_->SetScrollX(scrollX_);
 	}
 
 	// 紐の長さ制限の処理
@@ -313,7 +325,7 @@ void GameScene::Update() {
 		// プレイヤーの頭上に持つ
 		item_->SetPosition({playerPos.x, playerPos.y - 50.0f});
 	}
-	
+
 	//========================================
 	// Itemを落とす
 	//========================================
@@ -338,7 +350,24 @@ void GameScene::Update() {
 		// 持ち主を解除
 		itemHolder_ = nullptr;
 	}
+	//========================================
+	// 投げたItemとStandの当たり判定
+	//========================================
 
+	if (item_ && stand_ && item_->IsDropped()) {
+
+		const float itemWidth = 64.0f;
+		const float itemHeight = 64.0f;
+
+		if (stand_->IsCollision(item_->GetPosition(), itemWidth, itemHeight)) {
+
+			// Standの上にItemを置く
+			item_->SetPosition(stand_->GetItemPosition());
+
+			// Itemを停止
+			item_->Stop();
+		}
+	}
 }
 
 void GameScene::Draw() {
@@ -353,9 +382,9 @@ void GameScene::Draw() {
 
 		sprites_[i]->Draw();
 	}
-	//sprite2_->Draw();
+	// sprite2_->Draw();
 
-	//プレイヤー
+	// プレイヤー
 	if (floor1Sprite_) {
 		floor1Sprite_->Draw();
 	}
@@ -376,12 +405,16 @@ void GameScene::Draw() {
 		player2_->Draw();
 	}
 
+	// Stand
+	if (stand_) {
+		stand_->Draw();
+	}
+
 	if (item_) {
 		item_->Draw();
 	}
 
 	obstacles_->Draw();
-
 
 	Sprite::PostDraw();
 	// 障害物の描画

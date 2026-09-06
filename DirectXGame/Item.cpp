@@ -59,6 +59,15 @@ void Item::Drop() {
 	velocityX_ = 5.0f;
 }
 
+
+void Item::Stop() {
+
+	isDropped_ = false;
+	isHeld_ = false;
+	velocityX_ = 0.0f;
+	velocityY_ = 0.0f;
+}
+
 void Item::Draw() {
 	if (sprite_) {
 		sprite_->Draw();

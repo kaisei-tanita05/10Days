@@ -63,6 +63,8 @@ public:
 	/// </summary>
 	void SetGroundY(float groundY) { groundY_ = groundY; }
 
+	void Stop();
+
 private:
 	KamataEngine::Sprite* sprite_ = nullptr;
 	uint32_t itemTextureHandle_ = 0;

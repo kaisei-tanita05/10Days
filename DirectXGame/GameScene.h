@@ -3,6 +3,7 @@
 #include "Obstacles.h"
 #include "Player.h"
 #include "Item.h"
+#include "stand.h"
 
 enum class ActivePlayer { Player1, Player2 };
 
@@ -50,6 +51,8 @@ public:
 
 	// アイテムのインスタンス
 	Item* item_ = nullptr;
+
+	Stand* stand_ = nullptr;
 
 	// プレイヤーのインスタンス
 	Player* player1_ = nullptr;
