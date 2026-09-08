@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "Item.h"
 #include "stand.h"
+#include "Quiz.h"
 #include "Botom.h"
 #include "Fade.h"
 
@@ -131,4 +132,15 @@ private:
 	float shakeIntensity_ = 0.0f;        // シェイクの強度（ピクセル）
 	float shakeDuration_ = 0.0f;         // シェイクの残り時間（秒）
 	KamataEngine::Vector2 shakeOffset_ = {0.0f, 0.0f}; // 計算された揺れ幅
+
+	// 半透明暗転用画像
+	uint32_t overlayTextureHandle_ = 0;
+	KamataEngine::Sprite* overlaySprite_ = nullptr;
+	Quiz* quiz_ = nullptr;
+
+	// 石壁用
+	uint32_t wallTextureHandle_ = 0;
+	KamataEngine::Sprite* wallSprite_ = nullptr;
+	KamataEngine::Vector2 wallPosition_ = {3000.0f, 320.0f}; // Y座標を修正！
+	float wallMinY_ = -200.0f;
 };
