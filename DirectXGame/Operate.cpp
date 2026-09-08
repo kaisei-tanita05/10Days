@@ -14,6 +14,9 @@ void Operate::Initialize() {
 
 	// 02_13 22枚目
 	fade_->Start(Fade::Status::FadeIn, 3.0f);
+
+
+	SEHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/choice.mp3");
 }
 
 
@@ -28,6 +31,7 @@ void Operate::Update() {
 	case Phase::kMain:
 		// メイン処理
 		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+			Audio::GetInstance()->PlayWave(SEHandle_, false, 3.0f);
 			fade_->Start(Fade::Status::FadeOut, 1.0f);
 			phase_ = Phase::kFadeOut;
 		}

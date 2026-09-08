@@ -18,6 +18,9 @@ void GameOver::Initialize() {
 	BGMHandle_ = Audio::GetInstance()->LoadWave("Sound/BGM/GameOverBGM.mp3");
 	Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f);
 
+
+	SEHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/choice.mp3");
+
 	fade_ = new Fade();
 	fade_->Initialize();
 
@@ -38,6 +41,7 @@ void GameOver::Update() {
 	case Phase::kMain:
 		// メイン処理
 		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+			Audio::GetInstance()->PlayWave(SEHandle_, false, 5.0f);
 			fade_->Start(Fade::Status::FadeOut, 1.0f);
 			phase_ = Phase::kFadeOut;
 		}

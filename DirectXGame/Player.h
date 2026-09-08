@@ -52,4 +52,7 @@ private:
 	float gravity_ = 0.8f;               // 重力
 	float jumpInitialVelocity_ = -15.0f; // ジャンプ力（負の値で上方向）
 	bool isGrounded_ = false;            // 着地フラグ
+
+	// ジャンプSEのハンドル
+	uint32_t SEJumpHandle_ = 0;
 };

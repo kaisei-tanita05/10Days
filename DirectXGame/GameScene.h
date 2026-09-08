@@ -42,7 +42,13 @@ public:
 	// ゲームオーバーになったかどうかのフラグを取得
 	bool IsGameOver() const { return isGameOver_; }
 
-	private:
+	//シェイク開始関数
+	void StartShake(float intensity, float duration) {
+		shakeIntensity_ = intensity;
+		shakeDuration_ = duration;
+	}
+
+private:
 
 	KamataEngine::Sprite* sprites_[4] = {};
 
@@ -99,13 +105,30 @@ public:
 	bool isFinished_ = false;
 
 
-	float timer_ = 1.0f;     // 60秒の制限時間
+	float timer_ = 60.0f;     // 60秒の制限時間
 	bool isGameOver_ = false; // ゲームオーバー判定用フラグ
 
 	// サウンドハンドル
 	uint32_t BGMHandle_ = 0;
+	//SE
+	uint32_t SEPunchHandle_ = 0;
+
+	uint32_t SEThrowHandle_ = 0;
+
+	uint32_t SEOpendoor_ = 0;
+
+	uint32_t SEButtonHandle_ = 0;
+
+	uint32_t SEdoorCrushHandle_ = 0;
+
+	//成功した音
+	uint32_t SEConnectHandle_ = 0;
 
 	Fade* fade_ = nullptr;
 
 	Phase phase_ = Phase::kMain;
+
+	float shakeIntensity_ = 0.0f;        // シェイクの強度（ピクセル）
+	float shakeDuration_ = 0.0f;         // シェイクの残り時間（秒）
+	KamataEngine::Vector2 shakeOffset_ = {0.0f, 0.0f}; // 計算された揺れ幅
 };

@@ -39,6 +39,8 @@ public:
 	/// </summary>
 	bool IsDropped() const { return isDropped_; }
 
+	bool IsOnStand() const { return isOnStand_; }
+
 	/// <summary> 
 	/// スクロール量を設定
 	/// </summary>
@@ -76,6 +78,10 @@ private:
 	bool isHeld_ = false;
 	// 落ちているか
 	bool isDropped_ = false;
+
+	//Standに乗ってる
+	bool isOnStand_ = false;
+
 	// 落下速度
 	float velocityY_ = 0.0f;
 	// 横方向の速度

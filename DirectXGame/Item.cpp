@@ -10,6 +10,7 @@ void Item::Initialize(const Vector2& position) {
 	itemTextureHandle_ = TextureManager::Load("item/item1.png");
 	// スプライトの生成
 	sprite_ = Sprite::Create(itemTextureHandle_, worldPosition_);
+	isOnStand_ = false;
 }
 
 void Item::Update() {
@@ -45,13 +46,14 @@ void Item::PickUp() {
 
 	// 持ったので落下状態を解除
 	isDropped_ = false;
-
+	isOnStand_ = false;
 	velocityY_ = 0.0f;
 }
 
 void Item::Drop() {
 	isHeld_ = false;
 	isDropped_ = true; 
+	isOnStand_ = false;
 	// 少し上に投げる
 	velocityY_ = -8.0f;
 
@@ -64,6 +66,7 @@ void Item::Stop() {
 
 	isDropped_ = false;
 	isHeld_ = false;
+	isOnStand_ = true;
 	velocityX_ = 0.0f;
 	velocityY_ = 0.0f;
 }

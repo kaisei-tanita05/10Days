@@ -8,6 +8,8 @@ void Player::Initialize(uint32_t textureHandle, const KamataEngine::Vector2& ini
 
 	// スプライト生成
 	sprite_ = Sprite::Create(textureHandle_, position_);
+
+	SEJumpHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/jumpSE.mp3");
 }
 
 void Player::Update(bool isActive) {

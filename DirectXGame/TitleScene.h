@@ -35,4 +35,6 @@ private:
 	Phase phase_ = Phase::kFadeIn;
 
 	uint32_t BGMHandle_ = 0;
+
+	uint32_t SEHandle_ = 0;
 };

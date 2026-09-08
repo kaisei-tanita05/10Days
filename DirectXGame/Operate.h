@@ -28,4 +28,6 @@ private:
 
 	// 02_13 27枚目 現在のフェーズ
 	Phase phase_ = Phase::kFadeIn;
+
+	uint32_t SEHandle_ = 0;
 };

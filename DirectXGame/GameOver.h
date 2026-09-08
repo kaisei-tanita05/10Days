@@ -34,4 +34,6 @@ private:
 	bool finished_ = false;
 
 	uint32_t BGMHandle_ = 0;
+
+	uint32_t SEHandle_ = 0;
 };

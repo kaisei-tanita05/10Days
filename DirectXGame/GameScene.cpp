@@ -58,18 +58,17 @@ void GameScene::Initialize() {
 	}
 
 	//==================================================
-	// 障害物
-	// 扉ギミックを抜けた後に出てくる
+	// 障害物 (背景2枚目のエリア X: 1280〜2560)
 	//==================================================
 	obstacles_ = new Obstacles();
-	obstacles_->Initialize({2600.0f, 256.0f});
+	obstacles_->Initialize({2800.0f, 256.0f});
 
 	//==================================================
-	// ボタン・扉ギミック
-	// 障害物より手前に配置
+	// ボタン・扉ギミック (背景最後のエリア X: 3800前後)
+	// ※扉はボタン位置から+300px(4100.0f)に配置されます
 	//==================================================
 	botom_ = new Botom();
-	botom_->Initialize({1700.0f, 620.0f});
+	botom_->Initialize({4500.0f, 620.0f});
 
 	// プレイヤーの初期化
 	// 画像の読み込み
@@ -109,7 +108,7 @@ void GameScene::Initialize() {
 	stand_ = new Stand();
 
 	// Standの位置
-	stand_->Initialize({2600.0f, 606.0f});
+	stand_->Initialize({3400.0f, 606.0f});
 
 	fade_ = new Fade();
 	fade_->Initialize();
@@ -122,6 +121,24 @@ void GameScene::Initialize() {
 	/// BGMの読み込み
 	BGMHandle_ = Audio::GetInstance()->LoadWave("Sound/BGM/GameSceneBGM.mp3");
 	Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f); // ループ再生
+
+	//殴る音
+	SEPunchHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/PunchSE.mp3");
+
+	//itemを投げる音
+	SEThrowHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/throwSE.mp3");
+
+	//扉を開ける音
+	SEOpendoor_ = Audio::GetInstance()->LoadWave("Sound/SE/doorOpenSE.mp3");
+
+	// ボタンを押す音
+	SEButtonHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/pushButtonSE.mp36");
+
+	// 扉が壊れる音
+	SEdoorCrushHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/doorCrushSE.mp3");
+
+	// 成功した音
+	SEConnectHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/connectSE.mp3");
 }
 
 void GameScene::Update() {
@@ -165,6 +182,24 @@ void GameScene::Update() {
 	// FadeIn中もゲーム操作を受け付けない場合はリターン
 	if (phase_ == Phase::kFadeIn) {
 		return;
+	}
+
+
+	// 画面シェイクの更新処理
+	if (shakeDuration_ > 0.0f) {
+		shakeDuration_ -= 1.0f / 60.0f; // フレーム経過
+
+		// ランダムな方向に揺らす (-1.0 ～ 1.0 の乱数 * 強度)
+		float offsetX = ((float)rand() / RAND_MAX * 2.0f - 1.0f) * shakeIntensity_;
+		float offsetY = ((float)rand() / RAND_MAX * 2.0f - 1.0f) * shakeIntensity_;
+		shakeOffset_ = Vector2{offsetX, offsetY};
+
+		if (shakeDuration_ <= 0.0f) {
+			shakeDuration_ = 0.0f;
+			shakeOffset_ = Vector2{0.0f, 0.0f};
+		}
+	} else {
+		shakeOffset_ = Vector2{0.0f, 0.0f};
 	}
 
 	// ゲームロジックや入力処理を記述
@@ -355,7 +390,9 @@ void GameScene::Update() {
 
 					// Enterでボタンを押す
 					if (input->TriggerKey(DIK_RETURN)) {
-
+						// ボタン音を再生
+						Audio::GetInstance()->PlayWave(SEButtonHandle_, false, 2.0f);
+						Audio::GetInstance()->PlayWave(SEOpendoor_, false, 3.0f);
 						botom_->Push();
 					}
 				}
@@ -378,7 +415,13 @@ void GameScene::Update() {
 					// Enterで扉を破壊
 					if (input->TriggerKey(DIK_RETURN)) {
 
+						// パンチ音を再生
+						Audio::GetInstance()->PlayWave(SEPunchHandle_, false, 2.0f);
 						botom_->BreakDoor();
+						// 扉が壊れる音を再生
+						Audio::GetInstance()->PlayWave(SEdoorCrushHandle_, false, 2.0f);
+						// 画面シェイク発動
+						StartShake(15.0f, 0.3f);
 					}
 				}
 			}
@@ -411,6 +454,24 @@ void GameScene::Update() {
 				player1_->ResolveCollision(botom_->GetDoorPosition(), 80.0f, 120.0f);
 			}
 		}
+
+		//==================================================
+		//扉開通＆両プレイヤー通過によるクリア判定
+		//==================================================
+		// 上の扉が壊れ、下の扉が開いている時
+		if (botom_->IsDoorBroken() && botom_->IsBottomDoorOpened()) {
+
+			// 扉の右端のX座標
+			float doorRightX = botom_->GetDoorPosition().x + 80.0f;
+
+			// 両方のプレイヤーが扉の位置を通過したかチェック
+			if (player1_ && player2_ && player1_->GetPosition().x > doorRightX && player2_->GetPosition().x > doorRightX) {
+				fade_->Start(Fade::Status::FadeOut, 2.0f);
+
+				// FadeOut状態へ
+				phase_ = Phase::kFadeOut;
+			}
+		}
 	}
 
 	//========================================
@@ -432,7 +493,8 @@ void GameScene::Update() {
 
 				// Enterキー
 				if (input->TriggerKey(DIK_RETURN)) {
-
+					// パンチ音を再生
+					Audio::GetInstance()->PlayWave(SEPunchHandle_, false, 2.0f);
 					obstacles_->Hit();
 
 					// 瓶が壊れた
@@ -461,14 +523,13 @@ void GameScene::Update() {
 
 				// Enterキー
 				if (input->TriggerKey(DIK_RETURN)) {
-
 					obstacles_->Hit();
 				}
 			}
 		}
 	}
 
-	if (item_ && !item_->IsHeld() && !item_->IsDropped()) {
+	if (item_ && !item_->IsHeld() && !item_->IsDropped() && !item_->IsOnStand()) {
 
 		const float itemWidth = 64.0f;
 		const float itemHeight = 64.0f;
@@ -514,9 +575,9 @@ void GameScene::Update() {
 			item_->SetGroundY(606.0f);
 		}
 
+		Audio::GetInstance()->PlayWave(SEThrowHandle_, false, 3.0f);
 		// Itemを落とす
 		item_->Drop();
-
 		// 持ち主を解除
 		itemHolder_ = nullptr;
 	}
@@ -530,20 +591,12 @@ void GameScene::Update() {
 		const float itemHeight = 64.0f;
 
 		if (stand_->IsCollision(item_->GetPosition(), itemWidth, itemHeight)) {
-
+			Audio::GetInstance()->PlayWave(SEConnectHandle_, false, 3.0f);
 			// Standの上にItemを置く
 			item_->SetPosition(stand_->GetItemPosition());
 
 			// Itemを停止
 			item_->Stop();
-
-
-			// FadeOut開始
-			fade_->Start(Fade::Status::FadeOut, 2.0f);
-
-			// FadeOut状態へ
-			phase_ = Phase::kFadeOut;
-
 			
 		}
 	}
@@ -552,53 +605,86 @@ void GameScene::Update() {
 void GameScene::Draw() {
 	// 背景スプライトの描画
 	Sprite::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
+
+	// シェイク分を加味したスクロール値
+	float renderScrollX = scrollX_ - shakeOffset_.x;
+	float renderOffsetY = shakeOffset_.y;
+
 	// 背景
 	for (int i = 0; i < 4; i++) {
-
-		float x = (1280.0f * i) - scrollX_;
-
-		sprites_[i]->SetPosition({x, 0.0f});
-
+		float x = (1280.0f * i) - renderScrollX;
+		sprites_[i]->SetPosition({x, renderOffsetY});
 		sprites_[i]->Draw();
 	}
-	// sprite2_->Draw();
 
-	// プレイヤー
+	// 床1 (上エリアの床)
 	if (floor1Sprite_) {
-		floor1Sprite_->Draw();
+		// 背景と同じように1280px刻みで並べて描画する場合
+		for (int i = 0; i < 4; i++) {
+			float x = (1280.0f * i) - renderScrollX;
+			floor1Sprite_->SetPosition({x, 320.0f + renderOffsetY});
+			floor1Sprite_->Draw();
+		}
 	}
+
+	// 床2 (下エリアの床)
 	if (floor2Sprite_) {
-		floor2Sprite_->Draw();
+		for (int i = 0; i < 4; i++) {
+			float x = (1280.0f * i) - renderScrollX;
+			floor2Sprite_->SetPosition({x, 670.0f + renderOffsetY});
+			floor2Sprite_->Draw();
+		}
 	}
 
 	// ボタン・扉ギミック
 	if (botom_) {
+		botom_->SetScrollX(renderScrollX);
 		botom_->Draw();
 	}
 
-	// 紐をプレイヤーの背後に描画
+	// 紐（チェーン）描画
 	if (chainSprite_) {
+		Vector2 pos1 = player1_->GetPosition();
+		Vector2 pos2 = player2_->GetPosition();
+
+		Vector2 p1 = {pos1.x + 32.0f - renderScrollX, pos1.y + 32.0f + renderOffsetY};
+		Vector2 p2 = {pos2.x + 32.0f - renderScrollX, pos2.y + 32.0f + renderOffsetY};
+
+		Vector2 diff = {p2.x - p1.x, p2.y - p1.y};
+		float distance = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+		float angle = std::atan2(diff.y, diff.x);
+
+		chainSprite_->SetPosition(p1);
+		chainSprite_->SetRotation(angle);
+		chainSprite_->SetSize({distance, 4.0f});
 		chainSprite_->Draw();
 	}
 
-	// スプライトの描画 (PreDraw と PostDraw の間に記述)
+	// プレイヤー
 	if (player1_) {
+		player1_->SetScrollX(renderScrollX);
 		player1_->Draw();
 	}
 	if (player2_) {
+		player2_->SetScrollX(renderScrollX);
 		player2_->Draw();
 	}
 
 	// Stand
 	if (stand_) {
+		stand_->SetScrollX(renderScrollX);
 		stand_->Draw();
 	}
 
 	if (item_) {
+		item_->SetScrollX(renderScrollX);
 		item_->Draw();
 	}
 
-	obstacles_->Draw();
+	if (obstacles_) {
+		obstacles_->SetScrollX(renderScrollX);
+		obstacles_->Draw();
+	}
 
 
 	Sprite::PostDraw();

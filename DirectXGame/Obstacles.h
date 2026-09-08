@@ -46,7 +46,7 @@ public:
 private:
 	KamataEngine::Sprite* sprite_ = nullptr;
 
-	uint32_t obstacleTextureHandle_;
+	uint32_t obstacleTextureHandle_ = 0;
 	
 
 	// ステージ上の座標
