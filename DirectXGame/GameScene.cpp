@@ -38,6 +38,12 @@ GameScene::~GameScene() {
 	// 鎖モデルの解放
 	delete chainSprite_;
 	chainSprite_ = nullptr;
+
+	delete quiz_;
+	quiz_ = nullptr;
+
+	delete wallSprite_;
+	wallSprite_ = nullptr;
 }
 
 void GameScene::Initialize() {
@@ -80,7 +86,6 @@ void GameScene::Initialize() {
 	// 色と透明度の設定 (R, G, B, A) -> アルファ値 0.2f で20%透過
 	overlaySprite_->SetColor({1.0f, 1.0f, 1.0f, 0.99f});
 
-
 	// プレイヤーの初期化
 	player1_ = new Player();
 	player1_->Initialize(player1TextureHandle_, {100.0f, 110.0f});
@@ -101,6 +106,30 @@ void GameScene::Initialize() {
 
 	// Standの位置
 	stand_->Initialize({2600.0f, 606.0f});
+
+	uint32_t quizTex = TextureManager::Load("Quiz/mondai1.png");
+	uint32_t quizTex2 = TextureManager::Load("Quiz/mondai2.png");
+
+	uint32_t btnTexs[3] = {TextureManager::Load("Quiz/button1.png"), TextureManager::Load("Quiz/button2.png"), TextureManager::Load("Quiz/button3.png")};
+
+	Vector2 boardScreenPosition = {600.0f, 380.0f};
+	Vector2 boardScreenPosition2 = {600.0f, 100.0f};
+
+	// ステージ（下画面）内に配置する3つのボタンのワールド座標
+	Vector2 btnWorldPositions[3] = {
+	    {600.0f, 550.0f}, // ボタン1
+	    {750.0f, 550.0f}, // ボタン2
+	    {900.0f, 550.0f}  // ボタン3
+	};
+
+	quiz_ = new Quiz();
+	quiz_->Initialize(quizTex, quizTex2, btnTexs, boardScreenPosition, boardScreenPosition2, btnWorldPositions);
+
+	// 石壁の初期化
+	wallTextureHandle_ = TextureManager::Load("wall.png");
+	wallPosition_ = {1150.0f, 0.0f};
+	wallMinY_ = -800.0f; // 画面外（画面上端より上）まで引き上げる目標値
+	wallSprite_ = Sprite::Create(wallTextureHandle_, wallPosition_);
 }
 
 void GameScene::Update() {
@@ -108,7 +137,7 @@ void GameScene::Update() {
 	// ゲームロジックや入力処理を記述
 	Input* input = Input::GetInstance();
 
-	// プレイヤーの更新
+	// プレイヤー切替
 	if (input->TriggerKey(DIK_1)) {
 		if (activePlayer_ == ActivePlayer::Player1) {
 			activePlayer_ = ActivePlayer::Player2;
@@ -117,7 +146,20 @@ void GameScene::Update() {
 		}
 	}
 
-	// それぞれに「自分が操作中か」を渡してUpdate
+	// 1. 【準備】プレイヤーに壁の制限座標をあらかじめ設定する（移動処理の前！）
+	if (wallPosition_.y > wallMinY_) {
+		if (player1_)
+			player1_->SetWallLimitX(wallPosition_.x);
+		if (player2_)
+			player2_->SetWallLimitX(wallPosition_.x);
+	} else {
+		if (player1_)
+			player1_->ClearWallLimitX();
+		if (player2_)
+			player2_->ClearWallLimitX();
+	}
+
+	// 2. 【移動】プレイヤーのUpdateを実行（1フレームに1回だけ実行）
 	if (player1_) {
 		player1_->Update(activePlayer_ == ActivePlayer::Player1);
 	}
@@ -140,7 +182,7 @@ void GameScene::Update() {
 
 	if (activePlayer) {
 
-		// プレイヤーのワールド座標
+		// プレイヤーのワールド座標（すでに壁でブロックされた後の座標）
 		float playerWorldX = activePlayer->GetPosition().x;
 
 		// プレイヤーの画面上の座標
@@ -397,6 +439,29 @@ void GameScene::Update() {
 			isFinished_ = true;
 		}
 	}
+
+	// 1. クイズの更新
+	if (quiz_) {
+		quiz_->SetScrollX(scrollX_);
+		// P2が操作中の場合のみ解答可能なように P2 の情報を渡す
+		Vector2 p2Pos = player2_ ? player2_->GetPosition() : Vector2{0, 0};
+		quiz_->Update(activePlayer_ == ActivePlayer::Player2, p2Pos);
+	}
+
+	// 2. クイズ正解時の石壁の移動処理
+	if (quiz_ && quiz_->IsCleared()) {
+		if (wallPosition_.y > wallMinY_) {
+			wallPosition_.y -= 3.0f; // 上に昇る速度
+			if (wallPosition_.y < wallMinY_) {
+				wallPosition_.y = wallMinY_;
+			}
+		}
+	}
+
+	// 壁スプライトの位置（スクロール反映）
+	if (wallSprite_) {
+		wallSprite_->SetPosition({wallPosition_.x - scrollX_, wallPosition_.y});
+	}
 }
 
 void GameScene::Draw() {
@@ -411,9 +476,11 @@ void GameScene::Draw() {
 
 		sprites_[i]->Draw();
 	}
-	// sprite2_->Draw();
-
-	// プレイヤー
+	// 石壁の描画
+	if (wallSprite_) {
+		wallSprite_->Draw();
+	}
+	// 床
 	if (floor1Sprite_) {
 		floor1Sprite_->Draw();
 	}
@@ -434,7 +501,6 @@ void GameScene::Draw() {
 		player2_->Draw();
 	}
 
-
 	// Stand
 	if (stand_) {
 		stand_->Draw();
@@ -444,12 +510,19 @@ void GameScene::Draw() {
 		item_->Draw();
 	}
 
-	obstacles_->Draw();
+	// クイズの描画
+	if (quiz_) {
+		quiz_->Draw();
+	}
+
+	if (obstacles_) {
+		obstacles_->Draw();
+	}
+
 	// 最後に非操作領域の暗転オーバーレイを描画
 	if (overlaySprite_) {
 		overlaySprite_->Draw();
 	}
 
 	Sprite::PostDraw();
-	// 障害物の描画
 }

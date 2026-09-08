@@ -2,6 +2,11 @@
 
 using namespace KamataEngine;
 
+Player::~Player() {
+	delete sprite_;
+	sprite_ = nullptr;
+}
+
 void Player::Initialize(uint32_t textureHandle, const KamataEngine::Vector2& initialPos) {
 	textureHandle_ = textureHandle;
 	position_ = initialPos;
@@ -12,15 +17,13 @@ void Player::Initialize(uint32_t textureHandle, const KamataEngine::Vector2& ini
 
 void Player::Update(bool isActive) {
 
-		// 移動前の座標を保存
-		previousPosition_ = position_;
+	// 移動前の座標を保存
+	previousPosition_ = position_;
 
 	if (isActive) {
 		Input* input = Input::GetInstance();
 
-
 		// キー入力に応じてプレイヤーの位置を更新
-
 		if (input->PushKey(DIK_A)) {
 			position_.x -= speed_;
 		}
@@ -52,104 +55,79 @@ void Player::Update(bool isActive) {
 		velocityY_ = 0.0f; // 着地したら速度をリセット
 	}
 
-	// スプライトの位置を更新
-	if (sprite_) {
-		sprite_->SetPosition({position_.x - scrollX_, position_.y});
+	// 【壁の制限処理】
+	// プレイヤーのサイズ（kWidth = 64.0f）を考慮して壁の「左端」でピタッとストップさせる
+	if (position_.x + kWidth > wallLimitX_) {
+		position_.x = wallLimitX_ - kWidth;
 	}
 }
 
+bool Player::IsCollision(const Vector2& objectPos, float objectWidth, float objectHeight) {
+	// プレイヤーの左右上下の端（ワールド座標）
+	float pLeft = position_.x;
+	float pRight = position_.x + kWidth;
+	float pTop = position_.y;
+	float pBottom = position_.y + kHeight;
 
-bool Player::IsCollision(const Vector2& obstaclePosition, float obstacleWidth, float obstacleHeight) const {
+	// 対象オブジェクト（壁など）の左右上下の端（ワールド座標）
+	float oLeft = objectPos.x;
+	float oRight = objectPos.x + objectWidth;
+	float oTop = objectPos.y;
+	float oBottom = objectPos.y + objectHeight;
 
-	// プレイヤーの矩形
-	float playerLeft = position_.x;
-	float playerRight = position_.x + kWidth;
-	float playerTop = position_.y;
-	float playerBottom = position_.y + kHeight;
-
-	// 障害物の矩形
-	float obstacleLeft = obstaclePosition.x;
-	float obstacleRight = obstaclePosition.x + obstacleWidth;
-	float obstacleTop = obstaclePosition.y;
-	float obstacleBottom = obstaclePosition.y + obstacleHeight;
-
-	// AABB判定
-	if (playerRight <= obstacleLeft) {
-		return false;
+	// 重なっているかチェック
+	if (pRight > oLeft && pLeft < oRight && pBottom > oTop && pTop < oBottom) {
+		return true; // 衝突している
 	}
 
-	if (playerLeft >= obstacleRight) {
-		return false;
-	}
-
-	if (playerBottom <= obstacleTop) {
-		return false;
-	}
-
-	if (playerTop >= obstacleBottom) {
-		return false;
-	}
-
-	return true;
+	return false; // 衝突していない
 }
 
-void Player::ResolveCollision(const Vector2& obstaclePosition, float obstacleWidth, float obstacleHeight) {
+// =========================================================
+// 押し戻し処理（壁めり込み解消）
+// =========================================================
+void Player::ResolveCollision(const Vector2& objectPos, float objectWidth, float objectHeight) {
+	// プレイヤーとオブジェクトの中心座標を計算
+	float pCenterX = position_.x + kWidth / 2.0f;
+	float pCenterY = position_.y + kHeight / 2.0f;
 
-	float playerLeft = position_.x;
-	float playerRight = position_.x + kWidth;
-	float playerTop = position_.y;
-	float playerBottom = position_.y + kHeight;
+	float oCenterX = objectPos.x + objectWidth / 2.0f;
+	float oCenterY = objectPos.y + objectHeight / 2.0f;
 
-	float obstacleLeft = obstaclePosition.x;
-	float obstacleRight = obstaclePosition.x + obstacleWidth;
-	float obstacleTop = obstaclePosition.y;
-	float obstacleBottom = obstaclePosition.y + obstacleHeight;
+	// 中心同士の差分
+	float diffX = pCenterX - oCenterX;
+	float diffY = pCenterY - oCenterY;
 
-	//========================================
-	// 上から乗った
-	//========================================
+	// 重なっている幅（めり込み量）を計算
+	float overlapX = (kWidth / 2.0f + objectWidth / 2.0f) - std::abs(diffX);
+	float overlapY = (kHeight / 2.0f + objectHeight / 2.0f) - std::abs(diffY);
 
-	if (previousPosition_.y + kHeight <= obstacleTop && playerBottom > obstacleTop) {
-
-		position_.y = obstacleTop - kHeight;
-
-		velocityY_ = 0.0f;
-		isGrounded_ = true;
-	}
-	//========================================
-	// 下からぶつかった
-	//========================================
-	else if (previousPosition_.y >= obstacleBottom && playerTop < obstacleBottom) {
-
-		position_.y = obstacleBottom;
-
-		velocityY_ = 0.0f;
-	}
-	//========================================
-	// 横からぶつかった
-	//========================================
-	else {
-
-		// 左から右へ進んでぶつかった
-		if (previousPosition_.x + kWidth <= obstacleLeft && playerRight > obstacleLeft) {
-
-			position_.x = obstacleLeft - kWidth;
+	// めり込み量が少ない軸の方向に押し戻す
+	if (overlapX < overlapY) {
+		// 横方向からの衝突
+		if (diffX > 0.0f) {
+			// オブジェクトの右側に押し戻す
+			position_.x += overlapX;
+		} else {
+			// オブジェクトの左側に押し戻す
+			position_.x -= overlapX;
 		}
-		// 右から左へ進んでぶつかった
-		else if (previousPosition_.x >= obstacleRight && playerLeft < obstacleRight) {
-
-			position_.x = obstacleRight;
+	} else {
+		// 縦方向からの衝突
+		if (diffY > 0.0f) {
+			// オブジェクトの下側に押し戻す
+			position_.y += overlapY;
+		} else {
+			// オブジェクトの上側に押し戻す
+			position_.y -= overlapY;
 		}
-	}
-
-	// スプライト位置を更新
-	if (sprite_) {
-		sprite_->SetPosition({position_.x - scrollX_, position_.y});
 	}
 }
 
 void Player::Draw() {
 	if (sprite_) {
+		// 描画時にスクリーン座標へ変換
+		sprite_->SetPosition({position_.x - scrollX_, position_.y});
 		sprite_->Draw();
 	}
 }
