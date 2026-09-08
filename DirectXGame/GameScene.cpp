@@ -68,6 +68,9 @@ GameScene::~GameScene() {
 	botom_ = nullptr;
 
 	delete timeDisplay_;
+
+	delete particleManager_;
+	particleManager_ = nullptr;
 }
 
 void GameScene::Initialize() {
@@ -78,6 +81,10 @@ void GameScene::Initialize() {
 		// 1280pxずつ横に並べる
 		sprites_[i] = Sprite::Create(bgTextureHandle_[i], Vector2(1280.0f * i, 0.0f));
 	}
+
+	particleTextureHandle_ = TextureManager::Load("particle/particle.png");
+	particleManager_ = new ParticleManager();
+	particleManager_->Initialize(particleTextureHandle_);
 
 	//==================================================
 	// 障害物 (背景2枚目のエリア X: 1280〜2560)
@@ -592,6 +599,11 @@ void GameScene::Update() {
 					Audio::GetInstance()->PlayWave(SEPunchHandle_, false, 2.0f);
 					obstacles_->Hit();
 
+					Vector2 obstacleCenter = {obstacles_->GetPosition().x + obstacleWidth * 0.5f, obstacles_->GetPosition().y + obstacleHeight * 0.5f};
+					if (particleManager_) {
+						particleManager_->SpawnBurst(obstacleCenter, 25); // 25粒生成
+					}
+
 					// 瓶が壊れた
 					if (obstacles_->IsDestroyed()) {
 
@@ -622,6 +634,10 @@ void GameScene::Update() {
 				}
 			}
 		}
+	}
+
+	if (particleManager_) {
+		particleManager_->Update();
 	}
 
 	if (item_ && !item_->IsHeld() && !item_->IsDropped() && !item_->IsOnStand()) {
@@ -880,6 +896,9 @@ void GameScene::Draw() {
 		timeDisplay_->Draw();
 	}
 
+	if (particleManager_) {
+		particleManager_->Draw(renderScrollX, renderOffsetY);
+	}
 	Sprite::PostDraw();
 	
 	fade_->Draw();

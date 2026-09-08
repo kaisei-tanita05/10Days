@@ -8,6 +8,7 @@
 #include "Botom.h"
 #include "Fade.h"
 #include "Time.h"
+#include "Particle.h"
 
 enum class ActivePlayer { Player1, Player2 };
 
@@ -161,4 +162,7 @@ private:
 	bool isPlaySEGate2_ = false; // 壁2の音再生済みフラグ
 
 	Time* timeDisplay_ = nullptr;
+
+	ParticleManager* particleManager_ = nullptr;
+	uint32_t particleTextureHandle_ = 0;
 };
