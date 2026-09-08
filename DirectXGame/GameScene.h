@@ -7,6 +7,7 @@
 #include "Quiz.h"
 #include "Botom.h"
 #include "Fade.h"
+#include "Time.h"
 
 enum class ActivePlayer { Player1, Player2 };
 
@@ -106,7 +107,7 @@ private:
 	bool isFinished_ = false;
 
 
-	float timer_ = 60.0f;     // 60秒の制限時間
+	int timer_ = 4200;     // 60秒の制限時間
 	bool isGameOver_ = false; // ゲームオーバー判定用フラグ
 
 	// サウンドハンドル
@@ -158,4 +159,6 @@ private:
 
 	bool isPlaySEGate1_ = false; // 壁1の音再生済みフラグ
 	bool isPlaySEGate2_ = false; // 壁2の音再生済みフラグ
+
+	Time* timeDisplay_ = nullptr;
 };

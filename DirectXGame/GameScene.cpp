@@ -66,6 +66,8 @@ GameScene::~GameScene() {
 	// ボタンの解放
 	delete botom_;
 	botom_ = nullptr;
+
+	delete timeDisplay_;
 }
 
 void GameScene::Initialize() {
@@ -197,6 +199,10 @@ void GameScene::Initialize() {
 	wall2Position_ = {3700.0f, 0.0f};
 	wall2MinY_ = -800.0f;
 	wall2Sprite_ = Sprite::Create(wallTextureHandle_, wall2Position_);
+
+	// 時間表示
+	timeDisplay_ = new Time();
+	timeDisplay_->Initialize();
 }
 
 void GameScene::Update() {
@@ -215,11 +221,12 @@ void GameScene::Update() {
 	case Phase::kMain:
 		// メインのゲームロジック実行（下部で処理）
 		//制限時間のカウントダウン (60fps想定)
-		timer_ -= 1.0f / 60.0f;
-
+		timer_ -= 1;
+		// Timeクラスに現在の残り時間を渡して計算させる
+		timeDisplay_->UpDate(timer_);
 		//1分経過したらGameOverにしてフェードアウト開始
-		if (timer_ <= 0.0f) {
-			timer_ = 0.0f;
+		if (timer_ <= 0) {
+			timer_ = 0;
 			isGameOver_ = true; // フラグを立てる
 
 			fade_->Start(Fade::Status::FadeOut, 2.0f);
@@ -720,9 +727,9 @@ void GameScene::Update() {
 
 		// 間違えた選択肢を選んだ場合に時間を10秒減らす
 		if (quiz_->IsIncorrectTriggered()) {
-			timer_ -= 10.0f;
-			if (timer_ < 0.0f) {
-				timer_ = 0.0f;
+			timer_ -= 10;
+			if (timer_ < 0) {
+				timer_ = 0;
 			}
 			// 誤答時のフィードバックとして画面を少し揺らす（任意）
 			StartShake(10.0f, 0.2f);
@@ -868,6 +875,10 @@ void GameScene::Draw() {
 		overlaySprite_->Draw();
 	}
 
+	// 時間表示
+	if (timeDisplay_) {
+		timeDisplay_->Draw();
+	}
 
 	Sprite::PostDraw();
 	
