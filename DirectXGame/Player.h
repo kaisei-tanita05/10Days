@@ -30,6 +30,10 @@ public:
 	// 壁制限を解除するメソッド
 	void ClearWallLimitX() { wallLimitX_ = 99999.0f; }
 
+	// プレイヤーのサイズ（定数）
+	static inline const float kWidth = 128.0f;
+	static inline const float kHeight = 128.0f;
+
 private:
 	KamataEngine::Sprite* sprite_ = nullptr;
 	uint32_t textureHandle_ = 0;
@@ -39,9 +43,7 @@ private:
 	KamataEngine::Vector2 previousPosition_ = {0.0f, 0.0f};
 	float scrollX_ = 0.0f;
 
-	// プレイヤーのサイズ（定数）
-	static inline const float kWidth = 64.0f;
-	static inline const float kHeight = 64.0f;
+	
 
 	// 移動・ジャンプパラメータ
 	float speed_ = 5.0f;
@@ -54,14 +56,8 @@ private:
 	float minY_ = 0.0f;
 	float maxY_ = 0.0f;
 
-
-	float velocityY_ = 0.0f;             // Y方向の速度
-	float gravity_ = 0.8f;               // 重力
-	float jumpInitialVelocity_ = -15.0f; // ジャンプ力（負の値で上方向）
-	bool isGrounded_ = false;            // 着地フラグ
-
 	// ジャンプSEのハンドル
 	uint32_t SEJumpHandle_ = 0;
-};
 	float wallLimitX_ = 99999.0f;
+
 };

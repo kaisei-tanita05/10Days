@@ -37,6 +37,8 @@ private:
 	// サウンドハンドル
 	uint32_t BGMHandle_ = 0;
 
+	uint32_t voiceHandle_ = 0;
+
 	//SE
 	uint32_t SEHandle_ = 0;
 };

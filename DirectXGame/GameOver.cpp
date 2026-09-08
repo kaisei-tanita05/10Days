@@ -3,7 +3,9 @@
 using namespace KamataEngine;
 
 GameOver::~GameOver() {
-
+	if (voiceHandle_ != 0) {
+		Audio::GetInstance()->StopWave(voiceHandle_);
+	}
 	delete sprite_;
 	sprite_ = nullptr;
 	delete fade_;
@@ -16,7 +18,7 @@ void GameOver::Initialize() {
 	sprite_ = Sprite::Create(textureHandle_, {0.0f, 0.0f});
 
 	BGMHandle_ = Audio::GetInstance()->LoadWave("Sound/BGM/GameOverBGM.mp3");
-	Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f);
+	voiceHandle_ = Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f);
 
 
 	SEHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/choice.mp3");

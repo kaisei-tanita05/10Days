@@ -178,11 +178,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 
+		// 現在シーン更新
+		UpdateScene();
+
 		// シーン切り替え
 		ChangeScene();
 
-		// 現在シーン更新
-		UpdateScene();
 
 		// 描画開始
 		dxCommon->PreDraw();

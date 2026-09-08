@@ -16,6 +16,9 @@ public:
 	// ギミックをクリアしたか
 	bool IsCleared() const { return isCleared_; }
 
+	// 誤答ボタンが押されたか
+	bool IsIncorrectTriggered() const { return isIncorrectTriggered_; }
+
 private:
 	// クイズボード（ワールド配置・スクロール移動）
 	uint32_t quizTextureHandle_ = 0;
@@ -32,5 +35,16 @@ private:
 
 	int correctAnswerIndex_ = 1; // 0:ボタン1, 1:ボタン2, 2:ボタン3 が正解
 	bool isCleared_ = false;     // クリアフラグ
+	bool isIncorrectTriggered_ = false; // 誤答が押された瞬間フラグ
 	float scrollX_ = 0.0f;       // スクロール量
+
+	// 当たり判定の幅・高さ設定
+	const float buttonWidth_ = 64.0f;
+	const float buttonHeight_ = 128.0f;
+
+	// 成功した音
+	uint32_t SEConnectHandle_ = 0;
+
+	// 不正解の音
+	uint32_t SEUnconnectHandle_ = 0;
 };

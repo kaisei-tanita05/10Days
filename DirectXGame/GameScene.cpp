@@ -1,8 +1,18 @@
 #include "GameScene.h"
+#include <algorithm> // std::min / std::max に必要
+
+#ifndef NOMINMAX
+#define NOMINMAX // Windows.h の min/max マクロ定義を防ぐ
+#endif
+#include <Windows.h>
 
 using namespace KamataEngine;
 
 GameScene::~GameScene() {
+
+	if (voiceHandle_ != 0) {
+        Audio::GetInstance()->StopWave(voiceHandle_);
+    }
 
 	// 背景スプライトの解放
 	for (int i = 0; i < 4; i++) {
@@ -42,8 +52,12 @@ GameScene::~GameScene() {
 	delete quiz_;
 	quiz_ = nullptr;
 
-	delete wallSprite_;
-	wallSprite_ = nullptr;
+	// 壁1・壁2の解放
+	delete wall1Sprite_;
+	wall1Sprite_ = nullptr;
+
+	delete wall2Sprite_;
+	wall2Sprite_ = nullptr;
 
 	// Fadeの解放
 	delete fade_;
@@ -105,7 +119,7 @@ void GameScene::Initialize() {
 	// プレイヤーの初期化
 	player1_ = new Player();
 	player1_->Initialize(player1TextureHandle_, {100.0f, 110.0f});
-	player1_->SetMoveLimitY(0.0f, 190.0f); // プレイヤー1の移動範囲を設定
+	player1_->SetMoveLimitY(0.0f, 192.0f); // プレイヤー1の移動範囲を設定
 
 	player2_ = new Player();
 	player2_->Initialize(player2TextureHandle_, {100.0f, 500.0f});
@@ -119,13 +133,12 @@ void GameScene::Initialize() {
 
 	// Standの初期化
 	stand_ = new Stand();
-
 	// Standの位置
 	stand_->Initialize({3400.0f, 606.0f});
 
+
 	fade_ = new Fade();
 	fade_->Initialize();
-
 	// 02_13 22枚目
 	fade_->Start(Fade::Status::FadeIn, 2.0f);
 	phase_ = Phase::kFadeIn;
@@ -133,7 +146,7 @@ void GameScene::Initialize() {
 	//サウンド
 	/// BGMの読み込み
 	BGMHandle_ = Audio::GetInstance()->LoadWave("Sound/BGM/GameSceneBGM.mp3");
-	Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f); // ループ再生
+	voiceHandle_ = Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f); // ループ再生
 
 	//殴る音
 	SEPunchHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/PunchSE.mp3");
@@ -144,39 +157,46 @@ void GameScene::Initialize() {
 	//扉を開ける音
 	SEOpendoor_ = Audio::GetInstance()->LoadWave("Sound/SE/doorOpenSE.mp3");
 
+	SEOpenGate_ = Audio::GetInstance()->LoadWave("Sound/SE/openGateSE.mp3");
+
 	// ボタンを押す音
-	SEButtonHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/pushButtonSE.mp36");
+	SEButtonHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/pushButtonSE.mp3");
 
 	// 扉が壊れる音
 	SEdoorCrushHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/doorCrushSE.mp3");
 
 	// 成功した音
 	SEConnectHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/connectSE.mp3");
-	stand_->Initialize({2600.0f, 606.0f});
 
 	uint32_t quizTex = TextureManager::Load("Quiz/mondai1.png");
 	uint32_t quizTex2 = TextureManager::Load("Quiz/mondai2.png");
 
 	uint32_t btnTexs[3] = {TextureManager::Load("Quiz/button1.png"), TextureManager::Load("Quiz/button2.png"), TextureManager::Load("Quiz/button3.png")};
 
-	Vector2 boardScreenPosition = {600.0f, 380.0f};
-	Vector2 boardScreenPosition2 = {600.0f, 100.0f};
+	Vector2 boardWorldPosition = {1900.0f, 380.0f};  // 下画面側の問題板
+	Vector2 boardWorldPosition2 = {1900.0f, 100.0f}; // 上画面側の問題板
 
 	// ステージ（下画面）内に配置する3つのボタンのワールド座標
 	Vector2 btnWorldPositions[3] = {
-	    {600.0f, 550.0f}, // ボタン1
-	    {750.0f, 550.0f}, // ボタン2
-	    {900.0f, 550.0f}  // ボタン3
+	    {1800.0f, 550.0f}, // ボタン1
+	    {1950.0f, 550.0f}, // ボタン2
+	    {2100.0f, 550.0f}  // ボタン3
 	};
 
 	quiz_ = new Quiz();
-	quiz_->Initialize(quizTex, quizTex2, btnTexs, boardScreenPosition, boardScreenPosition2, btnWorldPositions);
+	quiz_->Initialize(quizTex, quizTex2, btnTexs, boardWorldPosition, boardWorldPosition2, btnWorldPositions);
 
 	// 石壁の初期化
+	// 壁1 (背景2枚目の出口 X: 2400)
 	wallTextureHandle_ = TextureManager::Load("wall.png");
-	wallPosition_ = {1150.0f, 0.0f};
-	wallMinY_ = -800.0f; // 画面外（画面上端より上）まで引き上げる目標値
-	wallSprite_ = Sprite::Create(wallTextureHandle_, wallPosition_);
+	wall1Position_ = {2400.0f, 0.0f};
+	wall1MinY_ = -800.0f;
+	wall1Sprite_ = Sprite::Create(wallTextureHandle_, wall1Position_);
+
+	// 壁2 (背景3枚目の出口 X: 3700)
+	wall2Position_ = {3700.0f, 0.0f};
+	wall2MinY_ = -800.0f;
+	wall2Sprite_ = Sprite::Create(wallTextureHandle_, wall2Position_);
 }
 
 void GameScene::Update() {
@@ -253,11 +273,17 @@ void GameScene::Update() {
 	}
 
 	// 1. 【準備】プレイヤーに壁の制限座標をあらかじめ設定する（移動処理の前！）
-	if (wallPosition_.y > wallMinY_) {
+	if (wall1Position_.y > wall1MinY_) {
 		if (player1_)
-			player1_->SetWallLimitX(wallPosition_.x);
+			player1_->SetWallLimitX(wall1Position_.x);
 		if (player2_)
-			player2_->SetWallLimitX(wallPosition_.x);
+			player2_->SetWallLimitX(wall1Position_.x);
+	}
+	if (wall2Position_.y > wall2MinY_) {
+		if (player1_)
+			player1_->SetWallLimitX(wall2Position_.x);
+		if (player2_)
+			player2_->SetWallLimitX(wall2Position_.x);
 	} else {
 		if (player1_)
 			player1_->ClearWallLimitX();
@@ -659,31 +685,83 @@ void GameScene::Update() {
 
 			// Itemを停止
 			item_->Stop();
-			
+			// 背景3枚目のギミッククリア（壁2を開ける）
+			isWall2Cleared_ = true;
 		}
 	}
 
-	// 1. クイズの更新
-	if (quiz_) {
-		quiz_->SetScrollX(scrollX_);
-		// P2が操作中の場合のみ解答可能なように P2 の情報を渡す
-		Vector2 p2Pos = player2_ ? player2_->GetPosition() : Vector2{0, 0};
-		quiz_->Update(activePlayer_ == ActivePlayer::Player2, p2Pos);
+	float currentWallLimitX = 99999.0f;
+
+	if (quiz_ && !quiz_->IsCleared()) {
+		currentWallLimitX = (std::min)(currentWallLimitX, wall1Position_.x);
+	}
+	if (!isWall2Cleared_) {
+		currentWallLimitX = (std::min)(currentWallLimitX, wall2Position_.x);
 	}
 
-	// 2. クイズ正解時の石壁の移動処理
+	if (currentWallLimitX < 99999.0f) {
+		if (player1_)
+			player1_->SetWallLimitX(currentWallLimitX);
+		if (player2_)
+			player2_->SetWallLimitX(currentWallLimitX);
+	} else {
+		if (player1_)
+			player1_->ClearWallLimitX();
+		if (player2_)
+			player2_->ClearWallLimitX();
+	}
+
+
+	// --- ギミック1: クイズ更新および壁1上昇処理 ---
+	if (quiz_) {
+		quiz_->SetScrollX(scrollX_);
+		Vector2 p2Pos = player2_ ? player2_->GetPosition() : Vector2{0, 0};
+		quiz_->Update(activePlayer_ == ActivePlayer::Player2, p2Pos);
+
+		// 間違えた選択肢を選んだ場合に時間を10秒減らす
+		if (quiz_->IsIncorrectTriggered()) {
+			timer_ -= 10.0f;
+			if (timer_ < 0.0f) {
+				timer_ = 0.0f;
+			}
+			// 誤答時のフィードバックとして画面を少し揺らす（任意）
+			StartShake(10.0f, 0.2f);
+		}
+	}
+
 	if (quiz_ && quiz_->IsCleared()) {
-		if (wallPosition_.y > wallMinY_) {
-			wallPosition_.y -= 3.0f; // 上に昇る速度
-			if (wallPosition_.y < wallMinY_) {
-				wallPosition_.y = wallMinY_;
+		if (wall1Position_.y > wall1MinY_) {
+			if (!isPlaySEGate1_) {
+				Audio::GetInstance()->PlayWave(SEOpenGate_, false, 2.0f);
+				isPlaySEGate1_ = true; // 再生済みフラグを立てる
+			}
+			wall1Position_.y -= 3.0f;
+			if (wall1Position_.y < wall1MinY_) {
+				wall1Position_.y = wall1MinY_;
+			}
+		}
+	}
+
+	// --- ギミック2: Stand（アイテム載せ）成功で壁2上昇処理 ---
+	if (isWall2Cleared_) {
+		if (wall2Position_.y > wall2MinY_) {
+			if (!isPlaySEGate2_) {
+				Audio::GetInstance()->PlayWave(SEOpenGate_, false, 2.0f);
+				isPlaySEGate2_ = true; // 再生済みフラグを立てる
+			}
+			wall2Position_.y -= 3.0f;
+			if (wall2Position_.y < wall2MinY_) {
+				wall2Position_.y = wall2MinY_;
 			}
 		}
 	}
 
 	// 壁スプライトの位置（スクロール反映）
-	if (wallSprite_) {
-		wallSprite_->SetPosition({wallPosition_.x - scrollX_, wallPosition_.y});
+	if (wall1Sprite_) {
+		wall1Sprite_->SetPosition({wall1Position_.x - scrollX_, wall1Position_.y});
+	}
+	if (wall2Sprite_) {
+		wall2Sprite_->SetPosition({wall2Position_.x - scrollX_, wall2Position_.y});
 	}
 }
 
@@ -701,9 +779,13 @@ void GameScene::Draw() {
 		sprites_[i]->SetPosition({x, renderOffsetY});
 		sprites_[i]->Draw();
 	}
-	// 石壁の描画
-	if (wallSprite_) {
-		wallSprite_->Draw();
+
+	// 壁1・壁2の描画
+	if (wall1Sprite_) {
+		wall1Sprite_->Draw();
+	}
+	if (wall2Sprite_) {
+		wall2Sprite_->Draw();
 	}
 	// 床
 
@@ -777,16 +859,13 @@ void GameScene::Draw() {
 	}
 
 	if (obstacles_) {
+		obstacles_->SetScrollX(renderScrollX);
 		obstacles_->Draw();
 	}
 
 	// 最後に非操作領域の暗転オーバーレイを描画
 	if (overlaySprite_) {
 		overlaySprite_->Draw();
-	}
-	if (obstacles_) {
-		obstacles_->SetScrollX(renderScrollX);
-		obstacles_->Draw();
 	}
 
 

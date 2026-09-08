@@ -5,13 +5,13 @@ class Item {
 
 public:
 	~Item();
-	/// <summary> 
+	/// <summary>
 	/// 初期化
 	/// </summary>
 	void Initialize(const KamataEngine::Vector2& position);
 
-	/// <summary> 
-	/// 更新 
+	/// <summary>
+	/// 更新
 	/// </summary>
 	void Update();
 
@@ -41,7 +41,7 @@ public:
 
 	bool IsOnStand() const { return isOnStand_; }
 
-	/// <summary> 
+	/// <summary>
 	/// スクロール量を設定
 	/// </summary>
 	void SetScrollX(float scrollX) { scrollX_ = scrollX; }
@@ -58,7 +58,6 @@ public:
 	    const {
 		return worldPosition_;
 	}
-	
 
 	/// <summary>
 	/// 落下する地面のY座標を設定
@@ -68,6 +67,7 @@ public:
 	void Stop();
 
 private:
+
 	KamataEngine::Sprite* sprite_ = nullptr;
 	uint32_t itemTextureHandle_ = 0;
 	// ステージ上の座標
@@ -79,7 +79,7 @@ private:
 	// 落ちているか
 	bool isDropped_ = false;
 
-	//Standに乗ってる
+	// Standに乗ってる
 	bool isOnStand_ = false;
 
 	// 落下速度

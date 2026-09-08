@@ -111,12 +111,17 @@ private:
 
 	// サウンドハンドル
 	uint32_t BGMHandle_ = 0;
+
+	uint32_t voiceHandle_ = 0;
+
 	//SE
 	uint32_t SEPunchHandle_ = 0;
 
 	uint32_t SEThrowHandle_ = 0;
 
 	uint32_t SEOpendoor_ = 0;
+
+	uint32_t SEOpenGate_ = 0;
 
 	uint32_t SEButtonHandle_ = 0;
 
@@ -140,7 +145,17 @@ private:
 
 	// 石壁用
 	uint32_t wallTextureHandle_ = 0;
-	KamataEngine::Sprite* wallSprite_ = nullptr;
-	KamataEngine::Vector2 wallPosition_ = {3000.0f, 320.0f}; // Y座標を修正！
-	float wallMinY_ = -200.0f;
+	// 壁1（Quiz用：背景2枚目の終わり）
+    KamataEngine::Sprite* wall1Sprite_ = nullptr;
+    KamataEngine::Vector2 wall1Position_ = { 0.0f, 0.0f };
+    float wall1MinY_ = -800.0f;
+
+    // 壁2（新規追加：背景3枚目の終わり）
+    KamataEngine::Sprite* wall2Sprite_ = nullptr;
+    KamataEngine::Vector2 wall2Position_ = { 0.0f, 0.0f };
+    float wall2MinY_ = -800.0f;
+    bool isWall2Cleared_ = false; // 壁2が開いたかのフラグ
+
+	bool isPlaySEGate1_ = false; // 壁1の音再生済みフラグ
+	bool isPlaySEGate2_ = false; // 壁2の音再生済みフラグ
 };

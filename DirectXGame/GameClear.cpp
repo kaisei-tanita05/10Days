@@ -3,7 +3,9 @@
 using namespace KamataEngine;
 
 GameClear::~GameClear() {
-
+	if (voiceHandle_ != 0) {
+        Audio::GetInstance()->StopWave(voiceHandle_);
+    }
 	delete sprite_;
 	sprite_ = nullptr;
 }
@@ -23,7 +25,7 @@ void GameClear::Initialize() {
 
 	BGMHandle_ = Audio::GetInstance()->LoadWave("Sound/BGM/GameClearBGM.mp3");
 
-	Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f);
+	voiceHandle_ = Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f);
 
 	SEHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/choice.mp3");
 }
