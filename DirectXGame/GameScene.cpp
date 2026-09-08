@@ -38,6 +38,10 @@ GameScene::~GameScene() {
 	// 鎖モデルの解放
 	delete chainSprite_;
 	chainSprite_ = nullptr;
+
+	// Fadeの解放
+	delete fade_;
+	fade_ = nullptr;
 }
 
 void GameScene::Initialize() {
@@ -93,9 +97,62 @@ void GameScene::Initialize() {
 
 	// Standの位置
 	stand_->Initialize({2600.0f, 606.0f});
+
+	fade_ = new Fade();
+	fade_->Initialize();
+
+	// 02_13 22枚目
+	fade_->Start(Fade::Status::FadeIn, 2.0f);
+	phase_ = Phase::kFadeIn;
+
+	//サウンド
+	/// BGMの読み込み
+	BGMHandle_ = Audio::GetInstance()->LoadWave("Sound/BGM/GameSceneBGM.mp3");
+	Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f); // ループ再生
 }
 
 void GameScene::Update() {
+
+	//========================================
+	// TitleSceneと同様のswitch文によるPhase制御
+	//========================================
+	switch (phase_) {
+	case Phase::kFadeIn:
+		fade_->Update();
+		if (fade_->IsFinished()) {
+			phase_ = Phase::kMain;
+		}
+		return;
+
+	case Phase::kMain:
+		// メインのゲームロジック実行（下部で処理）
+		//制限時間のカウントダウン (60fps想定)
+		timer_ -= 1.0f / 60.0f;
+
+		//1分経過したらGameOverにしてフェードアウト開始
+		if (timer_ <= 0.0f) {
+			timer_ = 0.0f;
+			isGameOver_ = true; // フラグを立てる
+
+			fade_->Start(Fade::Status::FadeOut, 2.0f);
+			phase_ = Phase::kFadeOut;
+			return;
+		}
+		break;
+
+	case Phase::kFadeOut:
+		fade_->Update();
+		if (fade_->IsFinished()) {
+			Audio::GetInstance()->StopWave(BGMHandle_);
+			isFinished_ = true;
+		}
+		return; // フェードアウト中もゲーム処理をスキップ
+	}
+
+	// FadeIn中もゲーム操作を受け付けない場合はリターン
+	if (phase_ == Phase::kFadeIn) {
+		return;
+	}
 
 	// ゲームロジックや入力処理を記述
 	Input* input = Input::GetInstance();
@@ -361,7 +418,7 @@ void GameScene::Update() {
 	// 投げたItemとStandの当たり判定
 	//========================================
 
-	if (item_ && stand_ && item_->IsDropped() && !isFinished_) {
+	if (phase_ == Phase::kMain &&item_ && stand_ && item_->IsDropped() && !isFinished_) {
 
 		const float itemWidth = 64.0f;
 		const float itemHeight = 64.0f;
@@ -374,8 +431,14 @@ void GameScene::Update() {
 			// Itemを停止
 			item_->Stop();
 
-			// ゲームクリア
-			isFinished_ = true;
+
+			// FadeOut開始
+			fade_->Start(Fade::Status::FadeOut, 2.0f);
+
+			// FadeOut状態へ
+			phase_ = Phase::kFadeOut;
+
+			
 		}
 	}
 }
@@ -426,6 +489,9 @@ void GameScene::Draw() {
 
 	obstacles_->Draw();
 
+
 	Sprite::PostDraw();
+	
+	fade_->Draw();
 	// 障害物の描画
 }

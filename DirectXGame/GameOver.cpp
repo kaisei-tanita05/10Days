@@ -15,6 +15,9 @@ void GameOver::Initialize() {
 
 	sprite_ = Sprite::Create(textureHandle_, {0.0f, 0.0f});
 
+	BGMHandle_ = Audio::GetInstance()->LoadWave("Sound/BGM/GameOverBGM.mp3");
+	Audio::GetInstance()->PlayWave(BGMHandle_, true, 1.0f);
+
 	fade_ = new Fade();
 	fade_->Initialize();
 
@@ -43,6 +46,7 @@ void GameOver::Update() {
 	case Phase::kFadeOut:
 		fade_->Update();
 		if (fade_->IsFinished()) {
+			Audio::GetInstance()->StopWave(BGMHandle_);
 			finished_ = true;
 		}
 		break;

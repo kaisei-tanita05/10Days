@@ -52,24 +52,54 @@ void ChangeScene() {
 	case Scene::kGame:
 		if (gameScene->IsFinished()) {
 
-			// GameSceneを削除
-			delete gameScene;
-			gameScene = nullptr;
+			if (gameScene->IsGameOver()) {
+				// GameOverの生成
+				delete gameScene;
+				gameScene = nullptr;
 
-			// GameClearを生成
-			gameClearScene = new GameClear();
-			gameClearScene->Initialize();
+				gameOverScene = new GameOver();
+				gameOverScene->Initialize();
 
-			// シーン変更
-			scene = Scene::kGameClear;
+				scene = Scene::kGameOver;
+			} else {
+				// GameClearの生成
+				delete gameScene;
+				gameScene = nullptr;
+
+				gameClearScene = new GameClear();
+				gameClearScene->Initialize();
+
+				scene = Scene::kGameClear;
+			}
 		}
 
 		break;
 	case Scene::kGameClear:
+		if (gameClearScene && gameClearScene->IsFinished()) {
+			// GameClearScene を削除
+			delete gameClearScene;
+			gameClearScene = nullptr;
+
+			// TitleScene を再生成して初期化
+			titleScene = new TitleScene();
+			titleScene->Initialize();
+
+			// シーンを Title へ変更
+			scene = Scene::kTitle;
+		}
 		break;
 
 	case Scene::kGameOver:
-		
+		// GameOver画面でフェードアウトが終了したらTitleへ
+		if (gameOverScene && gameOverScene->IsFinished()) {
+			delete gameOverScene;
+			gameOverScene = nullptr;
+
+			titleScene = new TitleScene();
+			titleScene->Initialize();
+
+			scene = Scene::kTitle;
+		}
 		break;
 	}
 }

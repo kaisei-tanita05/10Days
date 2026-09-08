@@ -4,12 +4,20 @@
 #include "Player.h"
 #include "Item.h"
 #include "stand.h"
+#include "Fade.h"
 
 
 enum class ActivePlayer { Player1, Player2 };
 
 class GameScene {
 public:
+
+	// 02_12 27枚目 シーンのフェーズ
+	enum class Phase {
+		kFadeIn,  // フェードイン
+		kMain,    // メイン部
+		kFadeOut, // フェードアウト
+	};
 
 	~GameScene();
 
@@ -30,6 +38,9 @@ public:
 
 	// ゲームクリアしたか
 	bool IsFinished() const { return isFinished_; }
+
+	// ゲームオーバーになったかどうかのフラグを取得
+	bool IsGameOver() const { return isGameOver_; }
 
 	private:
 
@@ -83,4 +94,15 @@ public:
 
 	// ゲームクリアフラグ
 	bool isFinished_ = false;
+
+
+	float timer_ = 1.0f;     // 60秒の制限時間
+	bool isGameOver_ = false; // ゲームオーバー判定用フラグ
+
+	// サウンドハンドル
+	uint32_t BGMHandle_ = 0;
+
+	Fade* fade_ = nullptr;
+
+	Phase phase_ = Phase::kMain;
 };
