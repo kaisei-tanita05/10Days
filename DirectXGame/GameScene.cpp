@@ -42,6 +42,10 @@ GameScene::~GameScene() {
 	// Fadeの解放
 	delete fade_;
 	fade_ = nullptr;
+
+	// ボタンの解放
+	delete botom_;
+	botom_ = nullptr;
 }
 
 void GameScene::Initialize() {
@@ -53,10 +57,19 @@ void GameScene::Initialize() {
 		sprites_[i] = Sprite::Create(bgTextureHandle_[i], Vector2(1280.0f * i, 0.0f));
 	}
 
-	// 障害物の初期化
+	//==================================================
+	// 障害物
+	// 扉ギミックを抜けた後に出てくる
+	//==================================================
 	obstacles_ = new Obstacles();
-	// ステージ上の座標
-	obstacles_->Initialize({2000.0f, 256.0f});
+	obstacles_->Initialize({2600.0f, 256.0f});
+
+	//==================================================
+	// ボタン・扉ギミック
+	// 障害物より手前に配置
+	//==================================================
+	botom_ = new Botom();
+	botom_->Initialize({1700.0f, 620.0f});
 
 	// プレイヤーの初期化
 	// 画像の読み込み
@@ -227,6 +240,20 @@ void GameScene::Update() {
 		obstacles_->Update();
 	}
 
+	//==================================================
+	// ボタン・扉ギミック更新
+	//==================================================
+
+	if (botom_) {
+
+		// スクロール量を渡す
+		botom_->SetScrollX(scrollX_);
+
+		// ギミックを更新
+		botom_->Update();
+	}
+
+
 	//========================================
 	// アイテム
 	//========================================
@@ -305,6 +332,85 @@ void GameScene::Update() {
 		// スケール（X方向=紐の長さ, Y方向=紐の太さ）
 		float chainThickness = 4.0f; // 紐の太さ（ピクセル）
 		chainSprite_->SetSize({distance, chainThickness});
+	}
+
+	//==================================================
+	// ボタン・扉ギミック
+	//==================================================
+
+	if (botom_) {
+
+		//==================================================
+		// 下側：ガリリ
+		// ボタンを押して下の扉を開ける
+		//==================================================
+
+		if (player2_) {
+
+			// ガリリを操作中
+			if (activePlayer_ == ActivePlayer::Player2) {
+
+				// ボタンに触れているか
+				if (botom_->IsCollision(player2_->GetPosition(), player2_->kWidth, player2_->kHeight)) {
+
+					// Enterでボタンを押す
+					if (input->TriggerKey(DIK_RETURN)) {
+
+						botom_->Push();
+					}
+				}
+			}
+		}
+
+		//==================================================
+		// 上側：デブブ
+		// 扉を破壊する
+		//==================================================
+
+		if (player1_) {
+
+			// デブブが上の扉に当たっているか
+			if (botom_->IsDoorCollision(player1_->GetPosition(), player1_->kWidth, player1_->kHeight)) {
+
+				// デブブを操作中
+				if (activePlayer_ == ActivePlayer::Player1) {
+
+					// Enterで扉を破壊
+					if (input->TriggerKey(DIK_RETURN)) {
+
+						botom_->BreakDoor();
+					}
+				}
+			}
+		}
+
+		//==================================================
+		// 下側：ガリリ用の扉
+		//==================================================
+
+		if (player2_) {
+
+			// 下の扉がまだ開いていない場合
+			if (botom_->IsBottomDoorCollision(player2_->GetPosition(), player2_->kWidth, player2_->kHeight)) {
+
+				// 扉にぶつかったら止める
+				player2_->ResolveCollision(botom_->GetBottomDoorPosition(), 80.0f, 120.0f);
+			}
+		}
+
+		//==================================================
+		// 上側：デブブ用の扉
+		//==================================================
+
+		if (player1_) {
+
+			// 上の扉がまだ壊れていない場合
+			if (botom_->IsDoorCollision(player1_->GetPosition(), player1_->kWidth, player1_->kHeight)) {
+
+				// 扉にぶつかったら止める
+				player1_->ResolveCollision(botom_->GetDoorPosition(), 80.0f, 120.0f);
+			}
+		}
 	}
 
 	//========================================
@@ -463,6 +569,11 @@ void GameScene::Draw() {
 	}
 	if (floor2Sprite_) {
 		floor2Sprite_->Draw();
+	}
+
+	// ボタン・扉ギミック
+	if (botom_) {
+		botom_->Draw();
 	}
 
 	// 紐をプレイヤーの背後に描画

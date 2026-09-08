@@ -4,8 +4,8 @@
 #include "Player.h"
 #include "Item.h"
 #include "stand.h"
+#include "Botom.h"
 #include "Fade.h"
-
 
 enum class ActivePlayer { Player1, Player2 };
 
@@ -72,6 +72,9 @@ public:
 	// プレイヤーのインスタンス
 	Player* player1_ = nullptr;
 	Player* player2_ = nullptr;
+
+	// ボタン
+	Botom* botom_ = nullptr;
 
 	// 床用の変数
 	uint32_t floor1TextureHandle_ = 0;             // 床のテクスチャハンドル
