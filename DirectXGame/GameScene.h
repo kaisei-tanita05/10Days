@@ -83,4 +83,8 @@ public:
 
 	// ゲームクリアフラグ
 	bool isFinished_ = false;
+
+	// 半透明暗転用画像
+	uint32_t overlayTextureHandle_ = 0;
+	KamataEngine::Sprite* overlaySprite_ = nullptr;
 };

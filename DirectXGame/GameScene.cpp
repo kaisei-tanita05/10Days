@@ -73,6 +73,14 @@ void GameScene::Initialize() {
 	floor2Sprite_ = Sprite::Create(floor2TextureHandle_, {0.0f, 670.0f});
 	floor2Sprite_->SetAnchorPoint({0.0f, 0.0f}); // 左上を基準にする
 
+	// 暗転用画像の読み込みとスプライト生成
+	overlayTextureHandle_ = TextureManager::Load("black.png");
+	overlaySprite_ = Sprite::Create(overlayTextureHandle_, {0.0f, 0.0f});
+
+	// 色と透明度の設定 (R, G, B, A) -> アルファ値 0.2f で20%透過
+	overlaySprite_->SetColor({1.0f, 1.0f, 1.0f, 0.99f});
+
+
 	// プレイヤーの初期化
 	player1_ = new Player();
 	player1_->Initialize(player1TextureHandle_, {100.0f, 110.0f});
@@ -152,6 +160,17 @@ void GameScene::Update() {
 					scrollX_ = maxScrollX_;
 				}
 			}
+		}
+	}
+
+	// 暗転オーバーレイの位置更新
+	if (overlaySprite_) {
+		if (activePlayer_ == ActivePlayer::Player1) {
+			// Player1 操作中 -> Player2 の領域（下段）に被せる
+			overlaySprite_->SetPosition({0.0f, 320.0f}); // 床2の高さなどに合わせる
+		} else {
+			// Player2 操作中 -> Player1 の領域（上段）に被せる
+			overlaySprite_->SetPosition({0.0f, 0.0f}); // 上段エリアの先頭
 		}
 	}
 
@@ -415,6 +434,7 @@ void GameScene::Draw() {
 		player2_->Draw();
 	}
 
+
 	// Stand
 	if (stand_) {
 		stand_->Draw();
@@ -425,6 +445,10 @@ void GameScene::Draw() {
 	}
 
 	obstacles_->Draw();
+	// 最後に非操作領域の暗転オーバーレイを描画
+	if (overlaySprite_) {
+		overlaySprite_->Draw();
+	}
 
 	Sprite::PostDraw();
 	// 障害物の描画
