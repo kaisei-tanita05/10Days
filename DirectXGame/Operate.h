@@ -22,6 +22,11 @@ public:
 
 private:
 
+	KamataEngine::Sprite* sprite_ = nullptr;
+
+	uint32_t textureHandle_ = 0;
+
+
 	bool finished_ = false;
 	// 02_13 12枚目
 	Fade* fade_ = nullptr;

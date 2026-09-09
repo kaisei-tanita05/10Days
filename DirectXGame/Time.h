@@ -30,4 +30,8 @@ private:
 	// 数字1つの表示サイズ（必要に応じて調整してください）
 	static inline const float kDigitWidth = 64.0f;
 	static inline const float kDigitHeight = 64.0f;
+
+	// 表示位置の設定（例：画面右上）
+	float startX = 1000.0f;
+	float y = 50.0f;
 };

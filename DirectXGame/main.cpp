@@ -196,14 +196,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	delete titleScene;
 	titleScene = nullptr;
+	delete operateScene;
+	operateScene = nullptr;
 	delete gameScene;
 	gameScene = nullptr;
 	delete gameOverScene;
 	gameOverScene = nullptr;
 	delete gameClearScene;
 	gameClearScene = nullptr;
-	delete operateScene;
-	operateScene = nullptr;
 	// エンジンの終了処理
 	Finalize();
 

@@ -101,8 +101,8 @@ void GameScene::Initialize() {
 
 	// プレイヤーの初期化
 	// 画像の読み込み
-	player1TextureHandle_ = TextureManager::Load("hito.png");
-	player2TextureHandle_ = TextureManager::Load("hito2.png");
+	player1TextureHandle_ = TextureManager::Load("player/player1.png");
+	player2TextureHandle_ = TextureManager::Load("player/player2.png");
 
 	// 床のテクスチャを読み込む
 	floor1TextureHandle_ = TextureManager::Load("floor.png");
@@ -127,11 +127,11 @@ void GameScene::Initialize() {
 
 	// プレイヤーの初期化
 	player1_ = new Player();
-	player1_->Initialize(player1TextureHandle_, {100.0f, 110.0f});
+	player1_->Initialize(player1TextureHandle_, {100.0f, 192.0f});
 	player1_->SetMoveLimitY(0.0f, 192.0f); // プレイヤー1の移動範囲を設定
 
 	player2_ = new Player();
-	player2_->Initialize(player2TextureHandle_, {100.0f, 500.0f});
+	player2_->Initialize(player2TextureHandle_, {100.0f, 542.0f});
 	player2_->SetMoveLimitY(350.0f, 550.0f); // プレイヤー2の移動範囲を設定
 
 	// 紐のスプライトを生成

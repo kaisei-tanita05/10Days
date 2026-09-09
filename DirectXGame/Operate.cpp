@@ -4,6 +4,9 @@ using namespace KamataEngine;
 
 
 Operate::~Operate() {
+
+	delete sprite_;
+	sprite_ = nullptr;
 	delete fade_;
 	fade_ = nullptr;
 }
@@ -15,6 +18,9 @@ void Operate::Initialize() {
 	// 02_13 22枚目
 	fade_->Start(Fade::Status::FadeIn, 3.0f);
 
+	textureHandle_ = TextureManager::Load("BackGround/operation.png");
+
+	sprite_ = Sprite::Create(textureHandle_, {0.0f, 0.0f});
 
 	SEHandle_ = Audio::GetInstance()->LoadWave("Sound/SE/choice.mp3");
 }
@@ -46,5 +52,14 @@ void Operate::Update() {
 }
 
 void Operate::Draw() { 
+
+	Sprite::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
+
+	if (sprite_) {
+		sprite_->Draw();
+	}
+
+	Sprite::PostDraw();
+
 	fade_->Draw();
 }

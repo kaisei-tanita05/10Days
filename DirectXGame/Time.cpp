@@ -22,6 +22,10 @@ void Time::Initialize() {
 	}
 
 	time_ = 0;
+
+	// 表示位置の設定（例：画面右上）
+	startX = 1000.0f;
+	y = 50.0f;
 }
 
 void Time::UpDate(int remainingTime) {
@@ -45,8 +49,8 @@ void Time::UpDate(int remainingTime) {
 	}
 
 	// 表示位置の設定（例：画面右上）
-	float startX = 1000.0f;
-	float y = 50.0f;
+	startX = 1000.0f;
+	y = 50.0f;
 	for (int i = 0; i < 4; i++) {
 		// 2桁目と3桁目の間に少し隙間を空ける（「：」の代わり）
 		float offset = (i > 1) ? 20.0f : 0.0f;
